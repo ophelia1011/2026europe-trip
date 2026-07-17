@@ -1,0 +1,1185 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#748064">
+<title>Ophelia Europe 2026</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<style>
+:root{
+  --bg:#f4f1e9;--card:#fffdf8;--ink:#283026;--muted:#6f756c;--accent:#748064;
+  --accent2:#b58c58;--line:#e5ded1;--danger:#9f5148;--shadow:0 14px 36px rgba(55,52,43,.10)
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:linear-gradient(180deg,#e9efe3 0,#f4f1e9 300px);color:var(--ink);
+font-family:-apple-system,BlinkMacSystemFont,"PingFang TC","Noto Sans TC","Segoe UI",sans-serif}
+button,input{font:inherit}a{color:inherit}
+.app{max-width:860px;margin:auto;padding:0 15px 100px}
+.hero{padding:32px 4px 18px}
+.kicker{font-size:12px;letter-spacing:.18em;font-weight:900;color:var(--accent)}
+h1{font-size:36px;line-height:1.08;margin:8px 0}
+.subtitle{color:var(--muted);line-height:1.55}
+.dashboard{background:rgba(255,255,255,.76);backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,.9);
+border-radius:26px;padding:17px;box-shadow:var(--shadow)}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:13px}
+.stat{background:#fff;border:1px solid var(--line);border-radius:17px;padding:12px}
+.stat b{display:block;font-size:20px}.stat span{font-size:12px;color:var(--muted)}
+.today{margin-top:12px;background:#eef2e8;border-radius:18px;padding:14px}
+.today small{color:var(--muted)}.today h3{margin:4px 0 8px}
+.quick{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.btn{border:1px solid var(--line);background:#fff;border-radius:13px;padding:10px 12px;text-decoration:none;
+display:inline-flex;gap:6px;align-items:center;font-size:13px;font-weight:800;cursor:pointer;white-space:nowrap}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.tabs{position:sticky;top:0;z-index:20;margin:15px -15px 0;padding:10px 15px;display:flex;gap:8px;overflow:auto;
+background:rgba(244,241,233,.93);backdrop-filter:blur(15px);border-bottom:1px solid rgba(229,222,209,.9)}
+.tabs::-webkit-scrollbar{display:none}
+.tab{white-space:nowrap;border:1px solid var(--line);background:#fff;border-radius:999px;padding:9px 13px;font-weight:800;color:var(--muted);cursor:pointer}
+.tab.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+.panel{display:none;padding-top:18px}.panel.active{display:block}
+.section-title{font-size:24px;margin:0 0 12px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:16px;box-shadow:var(--shadow);margin:12px 0}
+.day-card{padding:0;overflow:hidden}
+.day-head{padding:17px;display:flex;justify-content:space-between;gap:12px;cursor:pointer;list-style:none}
+.day-head::-webkit-details-marker{display:none}
+.day-head-main{display:flex;gap:12px;align-items:flex-start}
+.day-badge{flex-shrink:0;width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+font-size:20px;box-shadow:inset 0 0 0 2px rgba(255,255,255,.6)}
+.day-head h3{margin:0;font-size:19px}.route{font-size:13px;color:var(--accent);font-weight:850;margin-top:4px}
+.chev{font-size:24px;color:var(--accent);transition:transform .2s}
+.day-card[open] .chev{transform:rotate(45deg)}
+.day-body{border-top:1px solid var(--line);padding:0 17px 17px}
+
+/* ── TIMELINE ── */
+.timeline{border-left:2px solid #d8d1c5;margin:14px 0 4px 7px;padding-left:18px}
+.item{position:relative;margin:0;padding:14px 0 0}
+.item+.item{border-top:1px dashed var(--line);margin-top:6px}
+.item::before{content:"";position:absolute;width:10px;height:10px;border-radius:50%;background:var(--accent);
+left:-24px;top:19px;box-shadow:0 0 0 4px #f2eee6}
+.time{font-size:12px;color:var(--accent);font-weight:900;margin-bottom:2px;display:block}
+.item b{display:block;margin:2px 0 3px;font-size:14px}.item p{margin:3px 0;color:var(--muted);line-height:1.55;font-size:13px}
+
+/* ── SPOT PHOTO ── */
+.spot-photo-wrap{margin:8px 0 4px;border-radius:14px;overflow:hidden;background:#f0ece4;cursor:pointer;position:relative;display:block}
+.spot-photo-wrap img{width:100%;max-height:220px;object-fit:cover;display:block;border-radius:14px}
+.spot-photo-placeholder{display:flex;flex-direction:column;align-items:center;justify-content:center;
+height:80px;gap:6px;color:var(--muted);font-size:12px;border:1.5px dashed var(--line);border-radius:14px;
+background:#f8f5ef;cursor:pointer;transition:.15s}
+.spot-photo-placeholder:hover{background:#f0ece4}
+.spot-photo-placeholder span{font-size:22px}
+.photo-overlay-btn{position:absolute;bottom:8px;right:8px;background:rgba(255,255,255,.9);
+border:none;border-radius:9px;padding:5px 10px;font-size:11px;font-weight:800;cursor:pointer;display:none}
+body.editing .spot-photo-wrap:hover .photo-overlay-btn{display:block}
+body.editing .spot-photo-placeholder{border-color:var(--accent2)}
+
+/* ── NAV BTN inside item ── */
+.item-nav{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:800;
+color:var(--accent);text-decoration:none;padding:5px 10px;border:1px solid var(--line);
+border-radius:999px;background:#fff;margin-top:6px;cursor:pointer}
+.item-nav:hover{background:#eef2e8}
+.item-nav-edit{display:none;font-size:11px;padding:4px 8px;margin-left:4px}
+body.editing .item-nav-edit{display:inline-flex}
+
+/* ── CHECKLIST ── */
+.checklist-group{margin-bottom:16px}
+.checklist-group-title{font-weight:900;font-size:14px;margin:0 0 8px;color:var(--ink)}
+.check-item{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px dashed var(--line)}
+.check-item:last-child{border-bottom:none}
+.check-item input[type=checkbox]{width:21px;height:21px;accent-color:var(--accent);flex-shrink:0}
+.check-label{flex:1;font-size:14px;line-height:1.4;cursor:text}
+.check-label[contenteditable=true]{outline:2px dashed var(--accent2);border-radius:4px;padding:1px 4px;background:#fffaf1}
+.check-del{display:none;border:none;background:none;font-size:16px;color:var(--danger);cursor:pointer;padding:4px 6px;flex-shrink:0}
+body.editing .check-del{display:block}
+.add-check-btn{margin-top:8px}
+
+/* ── MANAGE ── */
+.manage-row{display:flex;flex-wrap:wrap;gap:7px;margin:12px 0 2px}
+.manage-btn{border:1px solid var(--line);background:#fff;border-radius:12px;padding:8px 10px;font-size:12px;font-weight:850;cursor:pointer}
+.manage-btn.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+.manage-btn.danger{color:var(--danger);background:#fff4f1;border-color:#f5d0cc}
+
+/* ── NOTES / CARDS ── */
+.note{background:#fff7e8;border-left:4px solid var(--accent2);padding:12px 13px;border-radius:12px;margin:12px 0;line-height:1.55}
+.warning{background:#fff0ed;border-left-color:var(--danger)}
+.day-highlight{background:#fff7e8;border:1px solid #f0dfc0;border-radius:14px;padding:12px 14px;margin:0 0 12px;font-size:13px;line-height:1.65}
+.day-highlight b{display:block;margin-bottom:5px;color:var(--accent2);font-size:12px;letter-spacing:.03em}
+.day-highlight ul{margin:0;padding-left:18px}
+.day-highlight li{margin:2px 0}
+.hotel{display:grid;grid-template-columns:43px 1fr;gap:12px}
+.icon{width:43px;height:43px;border-radius:13px;background:#edf2e7;display:grid;place-items:center;font-size:22px}
+.muted{color:var(--muted);line-height:1.5}
+.chips{display:flex;flex-wrap:wrap;gap:7px;margin:12px 0}
+.chip{background:#eef2e8;color:#526044;border-radius:999px;padding:6px 9px;font-size:12px;font-weight:750}
+
+/* custom cards */
+.custom-card{background:#fff;border:1px solid var(--line);border-radius:17px;padding:14px;margin:12px 0}
+.custom-meta{font-size:12px;color:var(--accent);font-weight:850;margin-bottom:5px}
+.custom-desc{color:var(--muted);line-height:1.55;white-space:pre-wrap;font-size:13px}
+.custom-card img{width:100%;max-height:280px;object-fit:cover;border-radius:12px;margin-top:10px}
+
+/* ── TOOLBAR ── */
+.toolbar{position:fixed;left:50%;transform:translateX(-50%);bottom:18px;z-index:40;display:flex;gap:7px;
+background:rgba(255,255,255,.95);backdrop-filter:blur(16px);border:1px solid var(--line);
+padding:8px;border-radius:18px;box-shadow:var(--shadow);max-width:calc(100vw - 20px);overflow:auto}
+.toolbar button{border:0;border-radius:12px;padding:10px 12px;font-weight:900;cursor:pointer;white-space:nowrap}
+.toolbar button:disabled{opacity:.38;cursor:default}
+.edit-btn{background:var(--accent);color:#fff}.save-btn{background:#263025;color:#fff}
+.cancel-btn{background:#eee8de}.reset-btn{background:#fff0ed;color:var(--danger)}
+
+/* ── MODAL ── */
+.modal-wrap{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:100;padding:18px;overflow:auto;display:none}
+.modal-wrap.open{display:flex;align-items:flex-start}
+.modal-box{max-width:560px;width:100%;margin:30px auto;background:var(--card);border-radius:22px;padding:20px;box-shadow:var(--shadow)}
+.modal-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:14px}
+.modal-head b{font-size:17px}
+.modal-box label{display:block;font-size:12px;color:var(--muted);font-weight:850;margin:10px 0 5px}
+.modal-box input,.modal-box textarea,.modal-box select{width:100%;padding:11px;border:1px solid var(--line);border-radius:12px;background:#fff;font:inherit}
+.modal-box textarea{min-height:80px;resize:vertical}
+.modal-actions{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}
+
+/* ── TOAST ── */
+.toast{position:fixed;top:18px;left:50%;transform:translateX(-50%);z-index:200;background:#263025;
+color:#fff;padding:10px 18px;border-radius:999px;font-weight:900;opacity:0;transition:.25s;pointer-events:none}
+.toast.show{opacity:1}
+
+/* ── TOOLS ── */
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+input[type=number],input[type=text]{padding:12px;border:1px solid var(--line);border-radius:12px;background:#fff}
+.expense-row{display:grid;grid-template-columns:1.4fr .7fr auto;gap:8px;margin:8px 0;align-items:center}
+.small{font-size:12px;color:var(--muted)}
+.backup-bar{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+
+/* ── EDITING global hilites ── */
+body.editing [data-editable]{outline:2px dashed var(--accent2);outline-offset:2px;border-radius:5px;background:#fffaf1}
+body.editing a.btn[href]:not(.no-outline){outline:2px dashed #a9906b;outline-offset:2px}
+
+/* ── ROUTE MAP ── */
+#routeMapEl{width:100%;height:460px;border-radius:18px;overflow:hidden;border:1px solid var(--line);box-shadow:var(--shadow)}
+.map-legend{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0}
+.map-legend span{background:#eef2e8;color:#526044;border-radius:999px;padding:5px 10px;font-size:11px;font-weight:750;white-space:nowrap}
+.leaflet-div-icon.day-pin{background:var(--accent);color:#fff;border-radius:50%;width:26px!important;height:26px!important;
+display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.3)}
+
+footer{text-align:center;color:var(--muted);font-size:12px;padding:30px 0}
+@media(min-width:700px){.stats{grid-template-columns:repeat(4,1fr)}}
+</style>
+</head>
+<body>
+<div class="app" id="appRoot">
+
+  <header class="hero">
+    <div class="kicker">OPHELIA'S TRIP APP</div>
+    <h1 data-editable>🇦🇹 🇮🇹 🇩🇪 Europe Road Trip 2026</h1>
+    <div class="subtitle" data-editable>2026/7/17–7/26｜奧地利・義大利・德國<br>Vienna Airport 取車／還車</div>
+  </header>
+
+  <section class="dashboard">
+    <b>旅行首頁</b>
+    <div class="stats">
+      <div class="stat"><b>10 天</b><span>旅行天數</span></div>
+      <div class="stat"><b>3 國</b><span>奧・義・德</span></div>
+      <div class="stat"><b>自駕</b><span>阿爾卑斯山線</span></div>
+      <div class="stat"><b>€300</b><span>建議現金</span></div>
+    </div>
+    <div class="today">
+      <small>第一天重點</small>
+      <h3 data-editable>🇦🇹 Vienna → Zell am See</h3>
+      <div class="quick">
+        <a class="btn primary" href="https://maps.google.com/?q=Thurners+Boutique+Hotel">🏨 飯店導航</a>
+        <a class="btn" href="https://maps.google.com/?q=Elisabethpark+Zell+am+See">📍 第一站</a>
+      </div>
+    </div>
+    <div class="note" style="margin-top:12px">✏️ 點「編輯」可直接改文字、圖片、連結，每個景點都可以加照片！修改後按「💾 儲存」。</div>
+    <div class="backup-bar">
+      <button class="btn" id="exportBtn">⬇️ 匯出備份</button>
+      <label class="btn" style="cursor:pointer">⬆️ 匯入備份<input id="importInput" type="file" accept=".json" hidden></label>
+    </div>
+  </section>
+
+  <nav class="tabs">
+    <button class="tab active" data-panel="days">📅 每日行程</button>
+    <button class="tab" data-panel="routemap">🗺 路線地圖</button>
+    <button class="tab" data-panel="stay">🏨 住宿</button>
+    <button class="tab" data-panel="prep">✅ 清單</button>
+    <button class="tab" data-panel="flight">✈️ 航班</button>
+    <button class="tab" data-panel="tools">🧮 工具</button>
+  </nav>
+
+  <main>
+    <!-- ═══ 每日行程 ═══ -->
+    <section class="panel active" id="days">
+      <h2 class="section-title">📅 每日行程</h2>
+
+      <!-- DAY 1 -->
+      <details class="card day-card" open>
+        <summary class="day-head"><div class="day-head-main"><div class="day-badge" style="background:#cfe0f5">🏞️</div><div><h3 data-editable>🇦🇹 Day 1｜7/17（五）</h3><div class="route" data-editable>Vienna → Zell am See（采爾湖畔）</div></div></div><div class="chev">＋</div></summary>
+        <div class="day-body">
+          <div class="manage-row"><button class="manage-btn primary add-field-btn">＋ 新增景點／餐廳／備註</button></div>
+          <div class="chips"><span class="chip">380 km</span><span class="chip">約 4 h 15 min</span></div>
+          <div class="day-highlight"><b>🔑 今日重點</b><ul>
+            <li data-editable>第一天不安排纜車或長距離散步</li>
+            <li data-editable>住宿不在湖畔正中心，進市區需開車</li>
+            <li data-editable>湖是 Zeller See；城鎮是 Zell am See</li>
+            <li data-editable>薄外套及雨傘放車上</li>
+          </ul></div>
+          <div class="timeline">
+            <div class="item" data-spot>
+              <span class="time" data-editable>上午</span>
+              <b data-editable>Vienna Airport 取車</b>
+              <p data-editable>拍車況、確認 Vignette、跨境與油種。</p>
+              <div class="spot-photo-wrap" onclick="handlePhotoClick(this)">
+                <div class="spot-photo-placeholder"><span>📷</span>點此加入景點照片</div>
+                <button class="photo-overlay-btn" type="button">更換照片</button>
+              </div>
+              <div class="item-nav-row">
+                <a class="item-nav" href="https://maps.google.com/?q=Vienna+International+Airport" target="_blank">📍 導航</a>
+                <button class="item-nav item-nav-edit manage-btn" onclick="editNavBtn(this.previousElementSibling)">🔗 改連結</button>
+              </div>
+            </div>
+            <div class="item" data-spot>
+              <span class="time" data-editable>下午</span>
+              <b data-editable>Zell am See（采爾湖畔）散步</b>
+              <p data-editable>Elisabethpark → Zeller See 湖濱步道 → Grand Hotel → 老城。停車：Parkgarage Zentrum。</p>
+              <div class="spot-photo-wrap" onclick="handlePhotoClick(this)">
+                <img src="https://commons.wikimedia.org/wiki/Special:FilePath/1308%20-%20Zell%20am%20See.JPG?width=800">
+                <button class="photo-overlay-btn" type="button">更換照片</button>
+              </div>
+              <div class="item-nav-row">
+                <a class="item-nav" href="https://maps.google.com/?q=Elisabethpark+Zell+am+See" target="_blank">📍 導航</a>
+                <button class="item-nav item-nav-edit manage-btn" onclick="editNavBtn(this.previousElementSibling)">🔗 改連結</button>
+              </div>
+            </div>
+            <div class="item" data-spot>
+              <span class="time" data-editable>晚餐</span>
+              <b data-editable>Restaurant Steinerwirt</b>
+              <p data-editable>備選：Villa Crazy Daisy／Kupferkessel。</p>
+              <div class="spot-photo-wrap" onclick="handlePhotoClick(this)">
+                <div class="spot-photo-placeholder"><span>📷</span>點此加入景點照片</div>
+                <button class="photo-overlay-btn" type="button">更換照片</button>
+              </div>
+              <div class="item-nav-row">
+                <a class="item-nav" href="https://maps.google.com/?q=Restaurant+Steinerwirt+Zell+am+See" target="_blank">📍 導航</a>
+                <button class="item-nav item-nav-edit manage-btn" onclick="editNavBtn(this.previousElementSibling)">🔗 改連結</button>
+              </div>
+            </div>
+          </div>
+          <div class="note" data-editable>第一天不排纜車，薄外套與雨傘放車上。</div>
+        </div>
+      </details>
+
+      <!-- DAY 2 -->
+      <details class="card day-card">
+        <summary class="day-head"><div class="day-head-main"><div class="day-badge" style="background:#e6ded0">🏔️</div><div><h3 data-editable>🇦🇹 Day 2｜7/18（六）</h3><div class="route" data-editable>Grossglockner High Alpine Road（大鐘山高山公路）</div></div></div><div class="chev">＋</div></summary>
+        <div class="day-body">
+          <div class="manage-row"><button class="manage-btn primary add-field-btn">＋ 新增景點／餐廳／備註</button></div>
+          <div class="chips"><span class="chip">約 200 km</span><span class="chip">全天景觀公路（純車程約 4 h，不含停留）</span></div>
+          <div class="day-highlight"><b>🔑 今日重點</b><ul>
+            <li data-editable>山區是否值得上去，能見度比降雨機率更重要</li>
+            <li data-editable>上午優先完成主要觀景點，午後容易起霧或雷雨</li>
+            <li data-editable>羽絨衣、長褲、防風防雨外套放車上；山上約 6–16°C</li>
+            <li data-editable>下坡使用低檔位及引擎煞車；大鐘山通行費不含在 Vignette 裡</li>
+          </ul></div>
+          <div class="timeline">
+            <div class="item" data-spot>
+              <span class="time" data-editable>08:00</span>
+              <b data-editable>出發前查官方 Webcam</b>
+              <p data-editable>能見度比降雨機率更重要。</p>
+              <div class="spot-photo-wrap" onclick="handlePhotoClick(this)">
+                <div class="spot-photo-placeholder"><span>📷</span>點此加入景點照片</div>
+                <button class="photo-overlay-btn" type="button">更換照片</button>
+              </div>
+              <div class="item-nav-row">
+                <a class="item-nav" href="https://www.grossglockner.at/en/for-your-visit/webcam-weather" target="_blank">🌤 官方天氣</a>
+                <button class="item-nav item-nav-edit manage-btn" onclick="editNavBtn(this.previousElementSibling)">🔗 改連結</button>
+              </div>
+            </div>
+            <div class="item" data-spot>
+              <span class="time" data-editable>上午</span>
+              <b data-editable>Edelweißspitze → Fuscher Törl → Hochtor</b>
+              <p data-editable>依天候停留主要觀景台。</p>
+              <div class="spot-photo-wrap" onclick="handlePhotoClick(this)">
+                <div class="spot-photo-placeholder"><span>📷</span>點此加入景點照片</div>
+                <button class="photo-overlay-btn" type="button">更換照片</button>
+              </div>
+              <div class="item-nav-row">
+                <a class="item-nav" href="https://maps.google.com/?q=Edelweißspitze" target="_blank">📍 導航</a>
+                <button class="item-nav item-nav-edit manage-btn" onclick="editNavBtn(this.previousElementSibling)">🔗 改連結</button>
+              </div>
+            </div>
+            <div class="item" data-spot>
+              <span class="time" data-editable>午餐＋下午</span>
+              <b data-editable>Kaiser-Franz-Josefs-Höhe（法蘭茲約瑟夫高地）</b>
+              <p data-editable>主峰、Pasterze 冰河、短步道、午餐，有機會看土撥鼠！</p>
+              <div class="spot-photo-wrap" onclick="handlePhotoClick(this)">
+                <img src="https://commons.wikimedia.org/wiki/Special:FilePath/Kaiser-Franz-Josefs-H%C3%B6he%20mit%20Gross%20Glockner.jpg?width=800">
+                <button class="photo-overlay-btn" type="button">更換照片</button>
+              </div>
+              <div class="item-nav-row">
+                <a class="item-nav" href="https://maps.google.com/?q=Kaiser-Franz-Josefs-Höhe" target="_blank">📍 導航</a>
+                <button class="item-nav item-nav-edit manage-btn" onclick="editNavBtn(this.previousElementSibling)">🔗 改連結</button>
+              </div>
+            </div>
+            <div class="item" data-spot>
+              <span class="time" data-editable>晚餐</span>
+              <b data-editable>Restaurant Kupferkessel</b>
+              <p data-editable>牛排、烤肉、肋排、啤酒。</p>
+              <div class="spot-photo-wrap" onclick="handlePhotoClick(this)">
+                <div class="spot-photo-placeholder"><span>📷</span>點此加入景點照片</div>
+                <button class="photo-overlay-btn" type="button">更換照片</button>
+              </div>
+              <div class="item-nav-row">
+                <a class="item-nav" href="https://maps.google.com/?q=Restaurant+Kupferkessel+Zell+am+See" target="_blank">📍 導航</a>
+                <button class="item-nav item-nav-edit manage-btn" onclick="editNavBtn(this.previousElementSibling)">🔗 改連結</button>
+              </div>
+            </div>
+          </div>
+          <div class="note" data-editable>羽絨、防風雨外套與長褲放車上；下坡用低檔與引擎煞車。⚠️ 大鐘山通行費需另付，Vignette 不含。</div>
+        </div>
+      </details>
+
+      <!-- DAY 3 -->
+      <details class="card day-card">
+        <summary class="day-head"><div class="day-head-main"><div class="day-badge" style="background:#f3ddd0">🏰</div><div><h3 data-editable>🇦🇹→🇮🇹 Day 3｜7/19（日）</h3><div class="route" data-editable>Zell am See → Vipiteno → Issengo</div></div></div><div class="chev">＋</div></summary>
+        <div class="day-body">
+          <div class="manage-row"><button class="manage-btn primary add-field-btn">＋ 新增景點／餐廳／備註</button></div>
+          <div class="chips"><span class="chip">約 270–300 km</span><span class="chip">純車程約 4 h</span></div>
+          <div class="day-highlight"><b>🔑 今日重點</b><ul>
+            <li data-editable>預估入住時間填 16:30；延誤超過 1 小時用 Booking／WhatsApp 通知房東</li>
+            <li data-editable>義大利高速公路不要走 Telepass 專用車道，走 Cash 或信用卡車道</li>
+            <li data-editable>今天是移動與休息日，不再塞遠距離景點</li>
+            <li data-editable>早點休息，隔天清晨前往布萊耶斯湖</li>
+          </ul></div>
+          <div class="timeline">
+            <div class="item" data-spot>
+              <span class="time" data-editable>09:00</span><b data-editable>退房出發</b>
+              <div class="spot-photo-wrap" onclick="handlePhotoClick(this)"><div class="spot-photo-placeholder"><span>📷</span>點此加入景點照片</div><button class="photo-overlay-btn" type="button">更換照片</button></div>
+            </div>
+            <div class="item" data-spot>
+              <span class="time" data-editable>約 11:00</span><b data-editable>Brenner Pass（布倫納山口）</b><p data-editable>邊界休息約 20 分鐘，奧義交界拍照。</p>
+              <div class="spot-photo-wrap" onclick="handlePhotoClick(this)"><div class="spot-photo-placeholder"><span>📷</span>點此加入景點照片</div><button class="photo-overlay-btn" type="button">更換照片</button></div>
+              <div class="item-nav-row"><a class="item-nav" href="https://maps.google.com/?q=Brenner+Pass" target="_blank">📍 導航</a><button class="item-nav item-nav-edit manage-btn" onclick="editNavBtn(this.previousElementSibling)">🔗 改連結</button></div>
+            </div>
+            <div class="item" data-spot>
+              <span class="time" data-editable>約 11:45</span><b data-editable>Vipiteno／Sterzing（維皮泰諾）</b><p data-editable>老城、Zwölferturm 鐘塔、午餐、冰淇淋，停留 1.5–2 小時。</p>
+              <div class="spot-photo-wrap" onclick="handlePhotoClick(this)"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Sterzing-Vipiteno.JPG?width=800"><button class="photo-overlay-btn" type="button">更換照片</button></div>
+              <div class="item-nav-row"><a class="item-nav" href="https://maps.google.com/?q=Vipiteno+Sterzing+Italy" target="_blank">📍 導航</a><button class="item-nav item-nav-edit manage-btn" onclick="editNavBtn(this.previousElementSibling)">🔗 改連結</button></div>
+            </div>
+            <div class="item" data-spot>
+              <span class="time" data-editable>午餐</span><b data-editable>Hotel Lamm Restaurant</b><p data-editable>推薦：義大利麵、牛排、南提洛料理。備選：Kolping Restaurant（Pizza、義大利麵、提洛料理）。</p>
+              <div class="spot-photo-wrap" onclick="handlePhotoClick(this)"><div class="spot-photo-placeholder"><span>📷</span>點此加入景點照片</div><button class="photo-overlay-btn" type="button">更換照片</button></div>
+              <div class="item-nav-row"><a class="item-nav" href="https://maps.google.com/?q=Hotel+Lamm+Vipiteno" target="_blank">📍 導航</a><button class="item-nav item-nav-edit manage-btn" onclick="editNavBtn(this.previousElementSibling)">🔗 改連結</button></div>
+            </div>
+            <div class="item" data-spot>
+              <span class="time" data-editable>15:30–16:30</span><b data-editable>Issengo 民宿 Check-in</b><p data-editable>傍晚 Lago di Issengo 湖邊散步。</p>
+              <div class="spot-photo-wrap" onclick="handlePhotoClick(this)"><div class="spot-photo-placeholder"><span>📷</span>點此加入景點照片</div><button class="photo-overlay-btn" type="button">更換照片</button></div>
+              <div class="item-nav-row"><a class="item-nav" href="https://maps.google.com/?q=Issinger+Weiher" target="_blank">📍 伊森戈湖</a><button class="item-nav item-nav-edit manage-btn" onclick="editNavBtn(this.previousElementSibling)">🔗 改連結</button></div>
+            </div>
+          </div>
+          <div class="note warning" data-editable>⚠️ 義大利高速公路：不走 Telepass 專用車道，走 Cash 或信用卡車道。</div>
+        </div>
+      </details>
+
+      <!-- DAY 4 -->
+      <details class="card day-card">
+        <summary class="day-head"><div class="day-head-main"><div class="day-badge" style="background:#cfe8ea">💧</div><div><h3 data-editable>🇮🇹 Day 4｜7/20（一）</h3><div class="route" data-editable>Lago di Braies（布萊耶斯湖）→ Prato Piazza</div></div></div><div class="chev">＋</div></summary>
+        <div class="day-body">
+          <div class="manage-row"><button class="manage-btn primary add-field-btn">＋ 新增景點／餐廳／備註</button></div>
+          <div class="chips"><span class="chip">約 100 km</span><span class="chip">約 2 h（不含停留，含 Prato Piazza）</span></div>
+          <div class="day-highlight"><b>🔑 今日重點</b><ul>
+            <li data-editable>建議 8 點前抵達，人會越來越多；划船不用預約</li>
+            <li data-editable>若停車位滿，依工作人員引導停較外圍停車場</li>
+            <li data-editable>下午通常比上午熱；早上約 10°C，短袖＋薄外套</li>
+          </ul></div>
+          <div class="timeline">
+            <div class="item" data-spot>
+              <span class="time" data-editable>07:15</span><b data-editable>民宿出發，目標 08:00 前到</b>
+              <div class="spot-photo-wrap" onclick="handlePhotoClick(this)"><div class="spot-photo-placeholder"><span>📷</span>點此加入景點照片</div><button class="photo-overlay-btn" type="button">更換照片</button></div>
+            </div>
+            <div class="item" data-spot>
+              <span class="time" data-editable>08:00</span><b data-editable>Lago di Braies（布萊耶斯湖）</b><p data-editable>湖邊散步、倒影拍照、划船（現場排隊）、湖邊咖啡，停留約 2 小時。</p>
+              <div class="spot-photo-wrap" onclick="handlePhotoClick(this)"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Lago%20di%20Braies%20South%20Tyrol%206.jpg?width=800"><button class="photo-overlay-btn" type="button">更換照片</button></div>
+              <div class="item-nav-row"><a class="item-nav" href="https://maps.google.com/?q=Lago+di+Braies" target="_blank">📍 導航</a><button class="item-nav item-nav-edit manage-btn" onclick="editNavBtn(this.previousElementSibling)">🔗 改連結</button></div>
+            </div>
+            <div class="item" data-spot>
+              <span class="time" data-editable>午餐</span><b data-editable>Ristorante Hotel Lago di Braies</b><p data-editable>義大利麵、Pizza、Apple Strudel。</p>
+              <div class="spot-photo-wrap" onclick="handlePhotoClick(this)"><div class="spot-photo-placeholder"><span>📷</span>點此加入景點照片</div><button class="photo-overlay-btn" type="button">更換照片</button></div>
+              <div class="item-nav-row"><a class="item-nav" href="https://maps.google.com/?q=Hotel+Lago+di+Braies+Restaurant" target="_blank">📍 導航</a><button class="item-nav item-nav-edit manage-btn" onclick="editNavBtn(this.previousElementSibling)">🔗 改連結</button></div>
+            </div>
+            <div class="item" data-spot>
+              <span class="time" data-editable>天氣好才去</span><b data-editable>Prato Piazza（普拉托高原）</b><p data-editable>車程 30 分鐘，高山草原散步。☁️ 下雨直接返回民宿。</p>
+              <div class="spot-photo-wrap" onclick="handlePhotoClick(this)"><div class="spot-photo-placeholder"><span>📷</span>點此加入景點照片</div><button class="photo-overlay-btn" type="button">更換照片</button></div>
+              <div class="item-nav-row"><a class="item-nav" href="https://maps.google.com/?q=Prato+Piazza" target="_blank">📍 導航</a><button class="item-nav item-nav-edit manage-btn" onclick="editNavBtn(this.previousElementSibling)">🔗 改連結</button></div>
+            </div>
+          </div>
+          <div class="note warning" data-editable>⚠️ 早到仍不保證車位，依工作人員引導停外圍或改搭接駁。</div>
+        </div>
+      </details>
+
+      <!-- DAY 5 -->
+      <details class="card day-card">
+        <summary class="day-head"><div class="day-head-main"><div class="day-badge" style="background:#e8dced">🚠</div><div><h3 data-editable>🇮🇹 Day 5｜7/21（二）</h3><div class="route" data-editable>Kronplatz（克隆廣場山）→ Brunico（布魯尼科）</div></div></div><div class="chev">＋</div></summary>
+        <div class="day-body">
+          <div class="manage-row"><button class="manage-btn primary add-field-btn">＋ 新增景點／餐廳／備註</button></div>
+          <div class="chips"><span class="chip">約 40 km</span><span class="chip">約 1 h（不含停留）</span></div>
+          <div class="day-highlight"><b>🔑 今日重點</b><ul>
+            <li data-editable>山頂較冷（約 8–18°C），羽絨放車上</li>
+            <li data-editable>下午若累，直接回 Issengo，不用勉強加碼 Val di Funes</li>
+            <li data-editable>Val di Funes 若下午起霧建議不要去，留到下次</li>
+          </ul></div>
+          <div class="timeline">
+            <div class="item" data-spot>
+              <span class="time" data-editable>08:00</span><b data-editable>Kronplatz（Reischach 纜車站）</b><p data-editable>搭纜車上山，360° 景觀，LUMEN 攝影博物館／Messner Mountain Museum（視興趣），停留約 3 小時。</p>
+              <div class="spot-photo-wrap" onclick="handlePhotoClick(this)"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Kronplatz%20von%20Bruneck%2C%202.jpeg?width=800"><button class="photo-overlay-btn" type="button">更換照片</button></div>
+              <div class="item-nav-row"><a class="item-nav" href="https://maps.google.com/?q=Kronplatz+Reischach" target="_blank">🚠 纜車站</a><button class="item-nav item-nav-edit manage-btn" onclick="editNavBtn(this.previousElementSibling)">🔗 改連結</button></div>
+            </div>
+            <div class="item" data-spot>
+              <span class="time" data-editable>午餐</span><b data-editable>AlpiNN Restaurant（山頂景觀餐廳）</b>
+              <div class="spot-photo-wrap" onclick="handlePhotoClick(this)"><div class="spot-photo-placeholder"><span>📷</span>點此加入景點照片</div><button class="photo-overlay-btn" type="button">更換照片</button></div>
+              <div class="item-nav-row"><a class="item-nav" href="https://maps.google.com/?q=AlpiNN+Restaurant" target="_blank">📍 導航</a><button class="item-nav item-nav-edit manage-btn" onclick="editNavBtn(this.previousElementSibling)">🔗 改連結</button></div>
+            </div>
+            <div class="item" data-spot>
+              <span class="time" data-editable>下午</span><b data-editable>Brunico（布魯尼科）老城</b><p data-editable>散步、精品店、Gelato、Café Stadtgasse 咖啡，停留約 2 小時。</p>
+              <div class="spot-photo-wrap" onclick="handlePhotoClick(this)"><div class="spot-photo-placeholder"><span>📷</span>點此加入景點照片</div><button class="photo-overlay-btn" type="button">更換照片</button></div>
+              <div class="item-nav-row"><a class="item-nav" href="https://maps.google.com/?q=Brunico" target="_blank">📍 導航</a><button class="item-nav item-nav-edit manage-btn" onclick="editNavBtn(this.previousElementSibling)">🔗 改連結</button></div>
+            </div>
+            <div class="item" data-spot>
+              <span class="time" data-editable>⭐ 天氣非常好才加碼</span><b data-editable>Val di Funes（芬內斯山谷）</b><p data-editable>來回約 2.5 小時，教堂＋經典山景。⚠️ 若下午開始起霧，建議不要去，留到下次。</p>
+              <div class="spot-photo-wrap" onclick="handlePhotoClick(this)"><div class="spot-photo-placeholder"><span>📷</span>點此加入景點照片</div><button class="photo-overlay-btn" type="button">更換照片</button></div>
+              <div class="item-nav-row"><a class="item-nav" href="https://maps.google.com/?q=Val+di+Funes" target="_blank">📍 導航</a><button class="item-nav item-nav-edit manage-btn" onclick="editNavBtn(this.previousElementSibling)">🔗 改連結</button></div>
+            </div>
+          </div>
+          <div class="note" data-editable>Val di Funes 只有天氣好且體力足夠才加；山頂約 8–18°C，羽絨放車上。</div>
+        </div>
+      </details>
+
+      <!-- DAY 6 -->
+      <details class="card day-card">
+        <summary class="day-head"><div class="day-head-main"><div class="day-badge" style="background:#dfe9cf">🐄</div><div><h3 data-editable>🇮🇹 Day 6｜7/22（三）</h3><div class="route" data-editable>Alpe di Siusi（休斯高原）→ Ortisei → Stafler</div></div></div><div class="chev">＋</div></summary>
+        <div class="day-body">
+          <div class="manage-row"><button class="manage-btn primary add-field-btn">＋ 新增景點／餐廳／備註</button></div>
+          <div class="chips"><span class="chip">約 140 km</span><span class="chip">約 2 h 30 min（不含停留，含搬宿）</span></div>
+          <div class="day-highlight"><b>🔑 今日重點</b><ul>
+            <li data-editable>今天會搭纜車，不用去 Seceda（刀鋒山）</li>
+            <li data-editable>重點是欣賞休斯高原，下午再去 Ortisei</li>
+            <li data-editable>晚餐記得提前訂位；晚上不用再排行程</li>
+          </ul></div>
+          <div class="timeline">
+            <div class="item" data-spot>
+              <span class="time" data-editable>08:00–15:00</span><b data-editable>Alpe di Siusi（休斯高原）</b><p data-editable>停山下 Seis 纜車站搭纜車，草原、牛群、山景，停留 4–5 小時。</p>
+              <div class="spot-photo-wrap" onclick="handlePhotoClick(this)"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/AlpediSiusi%20panorama2.JPG?width=800"><button class="photo-overlay-btn" type="button">更換照片</button></div>
+              <div class="item-nav-row"><a class="item-nav" href="https://maps.google.com/?q=Seiser+Alm+Cable+Car" target="_blank">🚠 纜車站</a><button class="item-nav item-nav-edit manage-btn" onclick="editNavBtn(this.previousElementSibling)">🔗 改連結</button></div>
+            </div>
+            <div class="item" data-spot>
+              <span class="time" data-editable>午餐</span><b data-editable>Ristorante Gostner Schwaige</b><p data-editable>提洛料理、Apple Strudel、咖啡。</p>
+              <div class="spot-photo-wrap" onclick="handlePhotoClick(this)"><div class="spot-photo-placeholder"><span>📷</span>點此加入景點照片</div><button class="photo-overlay-btn" type="button">更換照片</button></div>
+              <div class="item-nav-row"><a class="item-nav" href="https://maps.google.com/?q=Gostner+Schwaige" target="_blank">📍 導航</a><button class="item-nav item-nav-edit manage-btn" onclick="editNavBtn(this.previousElementSibling)">🔗 改連結</button></div>
+            </div>
+            <div class="item" data-spot>
+              <span class="time" data-editable>15:30</span><b data-editable>Ortisei（奧蒂塞伊）散步</b><p data-editable>精品店、Gelato，停留 1 小時。</p>
+              <div class="spot-photo-wrap" onclick="handlePhotoClick(this)"><div class="spot-photo-placeholder"><span>📷</span>點此加入景點照片</div><button class="photo-overlay-btn" type="button">更換照片</button></div>
+              <div class="item-nav-row"><a class="item-nav" href="https://maps.google.com/?q=Ortisei" target="_blank">📍 導航</a><button class="item-nav item-nav-edit manage-btn" onclick="editNavBtn(this.previousElementSibling)">🔗 改連結</button></div>
+            </div>
+            <div class="item" data-spot>
+              <span class="time" data-editable>18:00</span><b data-editable>Mauriz Keller Restaurant & Pizzeria</b><p data-editable>Schlutzkrapfen、Speckknödel、Pizza、牛排、Apple Strudel。⚠️ 記得提前訂位！</p>
+              <div class="spot-photo-wrap" onclick="handlePhotoClick(this)"><div class="spot-photo-placeholder"><span>📷</span>點此加入景點照片</div><button class="photo-overlay-btn" type="button">更換照片</button></div>
+              <div class="item-nav-row"><a class="item-nav" href="https://maps.google.com/?q=Mauriz+Keller+Ortisei" target="_blank">📍 導航</a><button class="item-nav item-nav-edit manage-btn" onclick="editNavBtn(this.previousElementSibling)">🔗 改連結</button></div>
+            </div>
+            <div class="item" data-spot>
+              <span class="time" data-editable>19:30</span><b data-editable>Romantik Hotel Stafler Check-in</b>
+              <div class="spot-photo-wrap" onclick="handlePhotoClick(this)"><div class="spot-photo-placeholder"><span>📷</span>點此加入景點照片</div><button class="photo-overlay-btn" type="button">更換照片</button></div>
+              <div class="item-nav-row"><a class="item-nav" href="https://maps.google.com/?q=Romantik+Hotel+Stafler" target="_blank">📍 導航</a><button class="item-nav item-nav-edit manage-btn" onclick="editNavBtn(this.previousElementSibling)">🔗 改連結</button></div>
+            </div>
+          </div>
+          <div class="note" data-editable>今天不去 Seceda（刀鋒山），高原約 8–18°C。</div>
+        </div>
+      </details>
+
+      <!-- DAY 7 -->
+      <details class="card day-card">
+        <summary class="day-head"><div class="day-head-main"><div class="day-badge" style="background:#d6e6f0">❄️</div><div><h3 data-editable>🇮🇹→🇩🇪 Day 7｜7/23（四）</h3><div class="route" data-editable>Mittenwald → Eibsee → Zugspitze → Munich</div></div></div><div class="chev">＋</div></summary>
+        <div class="day-body">
+          <div class="manage-row"><button class="manage-btn primary add-field-btn">＋ 新增景點／餐廳／備註</button></div>
+          <div class="chips"><span class="chip">約 300 km</span><span class="chip">約 4 h（不含停留，經 Brenner／Innsbruck）</span></div>
+          <div class="day-highlight"><b>🔑 今日重點</b><ul>
+            <li data-editable>今天是景點最多的一天，不安排逛街；BMW 留到 Day 8</li>
+            <li data-editable>如果楚格峰起霧，不用久待；艾布湖一定要去</li>
+            <li data-editable>山上約 9–15°C 有風，羽絨、長褲、防風外套</li>
+          </ul></div>
+          <div class="timeline">
+            <div class="item" data-spot>
+              <span class="time" data-editable>08:00</span><b data-editable>Mittenwald（米滕瓦爾德）</b><p data-editable>彩繪小鎮，約 45–60 分鐘。</p>
+              <div class="spot-photo-wrap" onclick="handlePhotoClick(this)"><div class="spot-photo-placeholder"><span>📷</span>點此加入景點照片</div><button class="photo-overlay-btn" type="button">更換照片</button></div>
+              <div class="item-nav-row"><a class="item-nav" href="https://maps.google.com/?q=Mittenwald" target="_blank">📍 導航</a><button class="item-nav item-nav-edit manage-btn" onclick="editNavBtn(this.previousElementSibling)">🔗 改連結</button></div>
+            </div>
+            <div class="item" data-spot>
+              <span class="time" data-editable>上午</span><b data-editable>Eibsee（艾布湖）</b><p data-editable>湖邊散步、湖水倒影，停留 1.5 小時。就算楚格峰起霧，艾布湖一定要去！</p>
+              <div class="spot-photo-wrap" onclick="handlePhotoClick(this)"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Grainau%2C%20Eibsee%2C%20Zugspitze%20und%20Ludwigsinsel.JPG?width=800"><button class="photo-overlay-btn" type="button">更換照片</button></div>
+              <div class="item-nav-row"><a class="item-nav" href="https://maps.google.com/?q=Eibsee" target="_blank">📍 導航</a><button class="item-nav item-nav-edit manage-btn" onclick="editNavBtn(this.previousElementSibling)">🔗 改連結</button></div>
+            </div>
+            <div class="item" data-spot>
+              <span class="time" data-editable>中午</span><b data-editable>Zugspitze（楚格峰）— 德國最高峰</b><p data-editable>搭纜車，停留 2–3 小時，冰河平台，約 9–15°C。若濃霧，縮短停留。</p>
+              <div class="spot-photo-wrap" onclick="handlePhotoClick(this)"><div class="spot-photo-placeholder"><span>📷</span>點此加入景點照片</div><button class="photo-overlay-btn" type="button">更換照片</button></div>
+              <div class="item-nav-row"><a class="item-nav" href="https://maps.google.com/?q=Zugspitze" target="_blank">📍 導航</a><button class="item-nav item-nav-edit manage-btn" onclick="editNavBtn(this.previousElementSibling)">🔗 改連結</button></div>
+            </div>
+            <div class="item" data-spot>
+              <span class="time" data-editable>17:00</span><b data-editable>Munich（慕尼黑）Check-in</b><p data-editable>今天不逛街，Augustiner Keller 或 Hofbräuhaus 晚餐。</p>
+              <div class="spot-photo-wrap" onclick="handlePhotoClick(this)"><div class="spot-photo-placeholder"><span>📷</span>點此加入景點照片</div><button class="photo-overlay-btn" type="button">更換照片</button></div>
+              <div class="item-nav-row"><a class="item-nav" href="https://maps.google.com/?q=Augustiner+Keller+Munich" target="_blank">🍺 晚餐</a><button class="item-nav item-nav-edit manage-btn" onclick="editNavBtn(this.previousElementSibling)">🔗 改連結</button></div>
+            </div>
+          </div>
+        </div>
+      </details>
+
+      <!-- DAY 8 -->
+      <details class="card day-card">
+        <summary class="day-head"><div class="day-head-main"><div class="day-badge" style="background:#f0e3cf">🛍️</div><div><h3 data-editable>🇩🇪 Day 8｜7/24（五）</h3><div class="route" data-editable>Munich（慕尼黑）自由日</div></div></div><div class="chev">＋</div></summary>
+        <div class="day-body">
+          <div class="manage-row"><button class="manage-btn primary add-field-btn">＋ 新增景點／餐廳／備註</button></div>
+          <div class="chips"><span class="chip">市區為主</span><span class="chip">無長途開車</span></div>
+          <div class="day-highlight"><b>🔑 今日重點</b><ul>
+            <li data-editable>今天才是購物日，不用急</li>
+            <li data-editable>BMW Museum 可略過；精品街和 Outlet 二選一，去 Outlet 就沒時間逛市區</li>
+          </ul></div>
+          <div class="timeline">
+            <div class="item" data-spot>
+              <span class="time" data-editable>09:30</span><b data-editable>BMW Welt（BMW 世界）</b><p data-editable>免費入場，約 1 小時，最新 BMW 展示超適合拍照。</p>
+              <div class="spot-photo-wrap" onclick="handlePhotoClick(this)"><div class="spot-photo-placeholder"><span>📷</span>點此加入景點照片</div><button class="photo-overlay-btn" type="button">更換照片</button></div>
+              <div class="item-nav-row"><a class="item-nav" href="https://maps.google.com/?q=BMW+Welt" target="_blank">📍 導航</a><button class="item-nav item-nav-edit manage-btn" onclick="editNavBtn(this.previousElementSibling)">🔗 改連結</button></div>
+            </div>
+            <div class="item" data-spot>
+              <span class="time" data-editable>下午 方案 A</span><b data-editable>Marienplatz + Maximilianstraße 精品街</b><p data-editable>市政廳、LV、Dior、Gucci、Chanel、Celine、Cartier、Oberpollinger 百貨。</p>
+              <div class="spot-photo-wrap" onclick="handlePhotoClick(this)"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Marienplatz%2CMunich%2CGermany.jpg?width=800"><button class="photo-overlay-btn" type="button">更換照片</button></div>
+              <div class="item-nav-row"><a class="item-nav" href="https://maps.google.com/?q=Maximilianstraße+Munich" target="_blank">👜 精品街</a><button class="item-nav item-nav-edit manage-btn" onclick="editNavBtn(this.previousElementSibling)">🔗 改連結</button></div>
+            </div>
+            <div class="item" data-spot>
+              <span class="time" data-editable>有興趣再去</span><b data-editable>二手精品：Miloura／Designer Taschen Secondhand</b>
+              <div class="spot-photo-wrap" onclick="handlePhotoClick(this)"><div class="spot-photo-placeholder"><span>📷</span>點此加入景點照片</div><button class="photo-overlay-btn" type="button">更換照片</button></div>
+              <div class="item-nav-row"><a class="item-nav" href="https://maps.google.com/?q=Miloura+Munich" target="_blank">📍 Miloura</a><button class="item-nav item-nav-edit manage-btn" onclick="editNavBtn(this.previousElementSibling)">🔗 改連結</button></div>
+            </div>
+            <div class="item" data-spot>
+              <span class="time" data-editable>下午 方案 B</span><b data-editable>Ingolstadt Village（因戈爾施塔特購物村）</b><p data-editable>單程約 45 分鐘，與市中心二選一。Gucci、Prada、Burberry、Coach、Longchamp。</p>
+              <div class="spot-photo-wrap" onclick="handlePhotoClick(this)"><div class="spot-photo-placeholder"><span>📷</span>點此加入景點照片</div><button class="photo-overlay-btn" type="button">更換照片</button></div>
+              <div class="item-nav-row"><a class="item-nav" href="https://maps.google.com/?q=Ingolstadt+Village" target="_blank">🛍 Outlet</a><button class="item-nav item-nav-edit manage-btn" onclick="editNavBtn(this.previousElementSibling)">🔗 改連結</button></div>
+            </div>
+            <div class="item" data-spot>
+              <span class="time" data-editable>晚餐</span><b data-editable>Hofbräuhaus</b>
+              <div class="spot-photo-wrap" onclick="handlePhotoClick(this)"><div class="spot-photo-placeholder"><span>📷</span>點此加入景點照片</div><button class="photo-overlay-btn" type="button">更換照片</button></div>
+              <div class="item-nav-row"><a class="item-nav" href="https://maps.google.com/?q=Hofbräuhaus+München" target="_blank">📍 導航</a><button class="item-nav item-nav-edit manage-btn" onclick="editNavBtn(this.previousElementSibling)">🔗 改連結</button></div>
+            </div>
+          </div>
+        </div>
+      </details>
+
+      <!-- DAY 9 -->
+      <details class="card day-card">
+        <summary class="day-head"><div class="day-head-main"><div class="day-badge" style="background:#d0e3e6">🌊</div><div><h3 data-editable>🇩🇪→🇦🇹 Day 9｜7/25（六）</h3><div class="route" data-editable>Munich → Passau → Vienna</div></div></div><div class="chev">＋</div></summary>
+        <div class="day-body">
+          <div class="manage-row"><button class="manage-btn primary add-field-btn">＋ 新增景點／餐廳／備註</button></div>
+          <div class="chips"><span class="chip">約 470 km</span><span class="chip">約 5 h（不含停留）</span></div>
+          <div class="day-highlight"><b>🔑 今日重點</b><ul>
+            <li data-editable>今天沒有時間逛精品，以散步為主</li>
+            <li data-editable>早點休息，準備最後一天</li>
+          </ul></div>
+          <div class="timeline">
+            <div class="item" data-spot>
+              <span class="time" data-editable>08:30</span><b data-editable>Munich 出發</b>
+              <div class="spot-photo-wrap" onclick="handlePhotoClick(this)"><div class="spot-photo-placeholder"><span>📷</span>點此加入景點照片</div><button class="photo-overlay-btn" type="button">更換照片</button></div>
+            </div>
+            <div class="item" data-spot>
+              <span class="time" data-editable>中途</span><b data-editable>Passau（帕紹）</b><p data-editable>老城、多瑙河、午餐，停留約 2 小時。</p>
+              <div class="spot-photo-wrap" onclick="handlePhotoClick(this)"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Dreiflusseck%20Passau.JPG?width=800"><button class="photo-overlay-btn" type="button">更換照片</button></div>
+              <div class="item-nav-row"><a class="item-nav" href="https://maps.google.com/?q=Passau" target="_blank">📍 導航</a><button class="item-nav item-nav-edit manage-btn" onclick="editNavBtn(this.previousElementSibling)">🔗 改連結</button></div>
+            </div>
+            <div class="item" data-spot>
+              <span class="time" data-editable>午餐</span><b data-editable>Restaurant Bouillabaisse</b><p data-editable>現場找即可。</p>
+              <div class="spot-photo-wrap" onclick="handlePhotoClick(this)"><div class="spot-photo-placeholder"><span>📷</span>點此加入景點照片</div><button class="photo-overlay-btn" type="button">更換照片</button></div>
+            </div>
+            <div class="item" data-spot>
+              <span class="time" data-editable>傍晚</span><b data-editable>Vienna（維也納）Check-in + 晚餐</b><p data-editable>Salm Bräu 晚餐（豬腳、啤酒、排骨），Stephansplatz、Kärntner Straße 散步。</p>
+              <div class="spot-photo-wrap" onclick="handlePhotoClick(this)"><div class="spot-photo-placeholder"><span>📷</span>點此加入景點照片</div><button class="photo-overlay-btn" type="button">更換照片</button></div>
+              <div class="item-nav-row"><a class="item-nav" href="https://maps.google.com/?q=Salm+Bräu" target="_blank">🍺 Salm Bräu</a><button class="item-nav item-nav-edit manage-btn" onclick="editNavBtn(this.previousElementSibling)">🔗 改連結</button></div>
+            </div>
+          </div>
+          <div class="note" data-editable>今天以散步為主，早點休息。</div>
+        </div>
+      </details>
+
+      <!-- DAY 10 -->
+      <details class="card day-card">
+        <summary class="day-head"><div class="day-head-main"><div class="day-badge" style="background:#e3dcf0">✈️</div><div><h3 data-editable>🇦🇹 Day 10｜7/26（日）</h3><div class="route" data-editable>Vienna → Vienna Airport ✈️</div></div></div><div class="chev">＋</div></summary>
+        <div class="day-body">
+          <div class="manage-row"><button class="manage-btn primary add-field-btn">＋ 新增景點／餐廳／備註</button></div>
+          <div class="chips"><span class="chip">約 20 km</span><span class="chip">約 25 min（市區到機場）</span></div>
+          <div class="day-highlight"><b>🔑 今日重點</b><ul>
+            <li data-editable>提前到機場；退稅流程：① 海關蓋章 → ② 辦退稅 → ③ 托運</li>
+            <li data-editable>退稅商品查驗前不要先托運</li>
+          </ul></div>
+          <div class="timeline">
+            <div class="item" data-spot>
+              <b data-editable>早餐、退房</b>
+              <div class="spot-photo-wrap" onclick="handlePhotoClick(this)"><div class="spot-photo-placeholder"><span>📷</span>點此加入景點照片</div><button class="photo-overlay-btn" type="button">更換照片</button></div>
+            </div>
+            <div class="item" data-spot>
+              <b data-editable>時間足夠才去 Belvedere 外圍散步</b>
+              <div class="spot-photo-wrap" onclick="handlePhotoClick(this)"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Belvedere%20museum%2C%20Vienna.JPG?width=800"><button class="photo-overlay-btn" type="button">更換照片</button></div>
+              <div class="item-nav-row"><a class="item-nav" href="https://maps.google.com/?q=Belvedere+Vienna" target="_blank">📍 Belvedere</a><button class="item-nav item-nav-edit manage-btn" onclick="editNavBtn(this.previousElementSibling)">🔗 改連結</button></div>
+            </div>
+            <div class="item" data-spot>
+              <span class="time" data-editable>13:30–14:00</span><b data-editable>還車 + 維也納機場</b><p data-editable>退稅：① 海關蓋章 → ② 辦退稅 → ③ 托運。退稅商品查驗前不要先托運！</p>
+              <div class="spot-photo-wrap" onclick="handlePhotoClick(this)"><div class="spot-photo-placeholder"><span>📷</span>點此加入景點照片</div><button class="photo-overlay-btn" type="button">更換照片</button></div>
+              <div class="item-nav-row"><a class="item-nav" href="https://maps.google.com/?q=Vienna+International+Airport" target="_blank">✈️ 機場</a><button class="item-nav item-nav-edit manage-btn" onclick="editNavBtn(this.previousElementSibling)">🔗 改連結</button></div>
+            </div>
+          </div>
+        </div>
+      </details>
+    </section>
+
+    <!-- ═══ 路線地圖 ═══ -->
+    <section class="panel" id="routemap">
+      <h2 class="section-title">🗺 10 天路線總覽</h2>
+      <div class="note" style="margin-bottom:12px">整趟奧地利・義大利・德國自駕路線，依 Day 1–10 順序連線。點地圖上的圓點可看是第幾天。</div>
+      <div id="routeMapEl"></div>
+      <div class="map-legend" id="mapLegend"></div>
+    </section>
+
+    <!-- ═══ 住宿 ═══ -->
+    <section class="panel" id="stay">
+      <h2 class="section-title">🏨 住宿</h2>
+      <div class="card hotel"><div class="icon">🏔️</div><div><b data-editable>7/17–7/19｜Thurners Boutique Hotel</b><div class="muted" data-editable>Seuferstraße 4, 5700 Zell am See</div><div class="quick"><a class="btn" href="https://maps.google.com/?q=Seuferstraße+4+5700+Austria">📍 導航</a></div></div></div>
+      <div class="card hotel"><div class="icon">🌿</div><div><b data-editable>7/19–7/22｜Issengo 民宿</b><div class="muted" data-editable>Piazza Weiher 17, Lago di Issengo</div><div class="quick"><a class="btn" href="https://maps.google.com/?q=Piazza+Weiher+17+39030+Italy">📍 導航</a></div></div></div>
+      <div class="card hotel"><div class="icon">🏡</div><div><b data-editable>7/22–7/23｜Romantik Hotel Stafler</b><div class="muted" data-editable>Mauls 10, 39040 Campo di Trens</div><div class="quick"><a class="btn" href="https://maps.google.com/?q=Romantik+Hotel+Stafler">📍 導航</a></div></div></div>
+      <div class="card hotel"><div class="icon">🏙️</div><div><b data-editable>7/23–7/25｜Holiday Inn Munich</b><div class="muted" data-editable>Hochstraße 3, 81669 München</div><div class="quick"><a class="btn" href="https://maps.google.com/?q=Holiday+Inn+Munich+City+Centre+Hochstraße+3">📍 導航</a></div></div></div>
+      <div class="card hotel"><div class="icon">🎻</div><div><b data-editable>7/25–7/26｜Austria Trend Hotel Savoyen</b><div class="muted" data-editable>Rennweg 16, 1030 Wien</div><div class="quick"><a class="btn" href="https://maps.google.com/?q=Austria+Trend+Hotel+Savoyen+Vienna">📍 導航</a></div></div></div>
+    </section>
+
+    <!-- ═══ 清單 ═══ -->
+    <section class="panel" id="prep">
+      <h2 class="section-title">✅ 出發與每日清單</h2>
+
+      <div class="card">
+        <div class="checklist-group">
+          <div class="checklist-group-title">🛂 出發前必備</div>
+          <div id="cl-docs">
+            <label class="check-item"><input type="checkbox"><span class="check-label" data-editable>護照、台灣駕照、國際駕照</span><button class="check-del" title="刪除">✕</button></label>
+            <label class="check-item"><input type="checkbox"><span class="check-label" data-editable>租車信用卡、訂單、跨境確認</span><button class="check-del" title="刪除">✕</button></label>
+            <label class="check-item"><input type="checkbox"><span class="check-label" data-editable>旅平險／海外突發疾病資料</span><button class="check-del" title="刪除">✕</button></label>
+            <label class="check-item"><input type="checkbox"><span class="check-label" data-editable>eSIM、轉接頭、行動電源</span><button class="check-del" title="刪除">✕</button></label>
+            <label class="check-item"><input type="checkbox"><span class="check-label" data-editable>Google Maps 離線地圖（奧・義・德）</span><button class="check-del" title="刪除">✕</button></label>
+            <label class="check-item"><input type="checkbox"><span class="check-label" data-editable>現金約 €300、兩張信用卡</span><button class="check-del" title="刪除">✕</button></label>
+          </div>
+          <button class="btn add-check-btn" data-target="cl-docs">＋ 新增項目</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="checklist-group">
+          <div class="checklist-group-title">🎽 行李打包</div>
+          <div id="cl-bag">
+            <label class="check-item"><input type="checkbox"><span class="check-label" data-editable>羽絨衣（山上必備）</span><button class="check-del" title="刪除">✕</button></label>
+            <label class="check-item"><input type="checkbox"><span class="check-label" data-editable>薄外套、防風防雨外套</span><button class="check-del" title="刪除">✕</button></label>
+            <label class="check-item"><input type="checkbox"><span class="check-label" data-editable>好走的鞋子（健行鞋或 sneaker）</span><button class="check-del" title="刪除">✕</button></label>
+            <label class="check-item"><input type="checkbox"><span class="check-label" data-editable>折疊雨傘</span><button class="check-del" title="刪除">✕</button></label>
+            <label class="check-item"><input type="checkbox"><span class="check-label" data-editable>防曬乳、個人藥品</span><button class="check-del" title="刪除">✕</button></label>
+          </div>
+          <button class="btn add-check-btn" data-target="cl-bag">＋ 新增項目</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="checklist-group">
+          <div class="checklist-group-title">⛰️ 山區出發前</div>
+          <div id="cl-mountain">
+            <label class="check-item"><input type="checkbox"><span class="check-label" data-editable>查看 Webcam／能見度</span><button class="check-del" title="刪除">✕</button></label>
+            <label class="check-item"><input type="checkbox"><span class="check-label" data-editable>水、零食、雨具放車上</span><button class="check-del" title="刪除">✕</button></label>
+            <label class="check-item"><input type="checkbox"><span class="check-label" data-editable>手機與行動電源充飽</span><button class="check-del" title="刪除">✕</button></label>
+            <label class="check-item"><input type="checkbox"><span class="check-label" data-editable>羽絨衣與長褲放車上</span><button class="check-del" title="刪除">✕</button></label>
+          </div>
+          <button class="btn add-check-btn" data-target="cl-mountain">＋ 新增項目</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="checklist-group">
+          <div class="checklist-group-title">🚗 自駕提醒</div>
+          <div id="cl-drive">
+            <label class="check-item"><input type="checkbox"><span class="check-label" data-editable>確認奧地利 Vignette 已購買</span><button class="check-del" title="刪除">✕</button></label>
+            <label class="check-item"><input type="checkbox"><span class="check-label" data-editable>大鐘山通行費（另計）</span><button class="check-del" title="刪除">✕</button></label>
+            <label class="check-item"><input type="checkbox"><span class="check-label" data-editable>義大利高速走 Cash 車道，非 Telepass</span><button class="check-del" title="刪除">✕</button></label>
+            <label class="check-item"><input type="checkbox"><span class="check-label" data-editable>車充（2 孔以上）</span><button class="check-del" title="刪除">✕</button></label>
+            <label class="check-item"><input type="checkbox"><span class="check-label" data-editable>行車記錄器確認</span><button class="check-del" title="刪除">✕</button></label>
+          </div>
+          <button class="btn add-check-btn" data-target="cl-drive">＋ 新增項目</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ 航班 ═══ -->
+    <section class="panel" id="flight">
+      <h2 class="section-title">✈️ 航班與租車</h2>
+      <div class="card"><b>去程｜台北 → 曼谷 → 維也納</b><p data-editable>航班 1：點此填寫</p><p data-editable>航班 2：點此填寫</p><a class="btn primary" href="https://www.flightradar24.com/data/flights/">查航班</a></div>
+      <div class="card"><b>回程｜維也納 → 曼谷 → 台北</b><p data-editable>航班 1：點此填寫</p><p data-editable>航班 2：點此填寫</p></div>
+      <div class="card"><b>租車</b><p data-editable>租車公司：點此填寫</p><p data-editable>訂單編號：點此填寫</p><p data-editable>車牌：取車後填寫</p><div class="note" data-editable>取車時拍完整車況，確認油種、Vignette、跨境及還車油量規則。</div></div>
+    </section>
+
+    <!-- ═══ 工具 ═══ -->
+    <section class="panel" id="tools">
+      <h2 class="section-title">🧮 工具與提醒</h2>
+      <div class="card">
+        <b>歐元換算</b>
+        <div class="grid2" style="margin-top:10px"><div><span class="small">匯率（1 EUR =）</span><input id="rate" type="number" value="35" step=".01"></div><div><span class="small">EUR</span><input id="eur" type="number" value="100"></div></div>
+        <p style="margin-top:8px"><b>約 NT$ <span id="twd">3500</span></b></p>
+      </div>
+      <div class="card"><b>簡易花費紀錄</b><div id="expenses"></div><button class="btn" id="addExpense">＋ 新增一筆</button><p><b>合計：€<span id="expenseTotal">0</span></b></p></div>
+      <div class="card"><b>退稅</b><p class="muted" data-editable>最後於 Vienna Airport 辦理：① 海關蓋章 → ② 辦退稅 → ③ 托運。退稅商品查驗前不要先托運。</p></div>
+      <div class="card"><b>自駕重點</b><p class="muted" data-editable>🇦🇹 加 95｜🇮🇹 加 Benzina 95｜🇩🇪 加 Super 95，不要加 Diesel。奧地利確認 Vignette；大鐘山另付費。義大利高速勿進 Telepass。山路下坡用低檔與引擎煞車。</p></div>
+      <div class="card"><b>緊急電話</b><p>🇦🇹 🇮🇹 🇩🇪 統一：<b style="font-size:24px">112</b></p></div>
+    </section>
+  </main>
+
+  <footer>Ophelia Europe 2026｜修改內容儲存在目前瀏覽器</footer>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- TOOLBAR -->
+<div class="toolbar">
+  <button class="edit-btn" id="editBtn">✏️ 編輯</button>
+  <button class="save-btn" id="saveBtn" disabled>💾 儲存</button>
+  <button class="cancel-btn" id="cancelBtn" disabled>取消</button>
+  <button class="reset-btn" id="resetBtn">還原</button>
+</div>
+
+<!-- MODAL -->
+<div class="modal-wrap" id="modal">
+  <div class="modal-box">
+    <div class="modal-head"><b id="modalTitle"></b><button class="btn" id="closeModal">✕ 關閉</button></div>
+    <div id="modalBody"></div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script>
+/* ────────── Constants ────────── */
+const KEY = 'ophelia-europe-v4-a1';
+const root = document.getElementById('appRoot');
+const toast = document.getElementById('toast');
+const modal = document.getElementById('modal');
+const modalBody = document.getElementById('modalBody');
+const modalTitle = document.getElementById('modalTitle');
+const editBtn = document.getElementById('editBtn');
+const saveBtn = document.getElementById('saveBtn');
+const cancelBtn = document.getElementById('cancelBtn');
+const resetBtn = document.getElementById('resetBtn');
+let snapshot = '';
+
+/* ────────── Utils ────────── */
+function uid(){ return 'x'+Date.now().toString(36)+Math.random().toString(36).slice(2,7) }
+function esc(v=''){return String(v).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
+function showToast(msg,dur=1800){
+  toast.textContent=msg; toast.classList.add('show');
+  setTimeout(()=>toast.classList.remove('show'),dur)
+}
+function openModal(title,html){
+  modalTitle.textContent=title; modalBody.innerHTML=html; modal.classList.add('open')
+}
+function closeModal(){ modal.classList.remove('open'); modalBody.innerHTML='' }
+document.getElementById('closeModal').onclick = closeModal;
+modal.addEventListener('click', e=>{ if(e.target===modal) closeModal() });
+
+/* ────────── Tabs ────────── */
+function bindTabs(){
+  document.querySelectorAll('.tab').forEach(btn=>{
+    btn.onclick=()=>{
+      document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+      document.querySelectorAll('.panel').forEach(x=>x.classList.remove('active'));
+      btn.classList.add('active');
+      const p=document.getElementById(btn.dataset.panel);
+      if(p) p.classList.add('active');
+      if(btn.dataset.panel==='routemap') initRouteMap();
+    }
+  })
+}
+
+/* ────────── Route Map ────────── */
+let routeMapInstance=null;
+const ROUTE_STOPS=[
+  {day:1,  name:'Vienna Airport',        lat:48.1103, lng:16.5697},
+  {day:1,  name:'Zell am See',           lat:47.3239, lng:12.7957},
+  {day:2,  name:'Kaiser-Franz-Josefs-Höhe（大鐘山）', lat:47.0725, lng:12.8319},
+  {day:2,  name:'Zell am See（返回）',    lat:47.3239, lng:12.7957},
+  {day:3,  name:'Brenner Pass',          lat:47.0027, lng:11.5058},
+  {day:3,  name:'Vipiteno／Sterzing',    lat:46.8963, lng:11.4295},
+  {day:3,  name:'Issengo',               lat:46.8236, lng:11.8394},
+  {day:4,  name:'Lago di Braies',        lat:46.6944, lng:12.0855},
+  {day:4,  name:'Prato Piazza',          lat:46.7167, lng:12.1167},
+  {day:5,  name:'Kronplatz',             lat:46.7397, lng:11.9601},
+  {day:5,  name:'Brunico',               lat:46.7981, lng:11.9358},
+  {day:6,  name:'Alpe di Siusi',         lat:46.5477, lng:11.6167},
+  {day:6,  name:'Ortisei',               lat:46.5773, lng:11.6766},
+  {day:6,  name:'Romantik Hotel Stafler', lat:46.8935, lng:11.4750},
+  {day:7,  name:'Mittenwald',            lat:47.4419, lng:11.2603},
+  {day:7,  name:'Eibsee',                lat:47.4611, lng:10.9847},
+  {day:7,  name:'Zugspitze',             lat:47.4210, lng:10.9852},
+  {day:7,  name:'Munich',                lat:48.1351, lng:11.5820},
+  {day:9,  name:'Passau',                lat:48.5665, lng:13.4312},
+  {day:9,  name:'Vienna',                lat:48.2082, lng:16.3738},
+  {day:10, name:'Vienna Airport',        lat:48.1103, lng:16.5697}
+];
+function initRouteMap(){
+  const el=document.getElementById('routeMapEl');
+  if(!el) return;
+  if(!routeMapInstance){
+    routeMapInstance=L.map(el).setView([47.3,13.5],6);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
+      attribution:'&copy; OpenStreetMap contributors', maxZoom:18
+    }).addTo(routeMapInstance);
+    const latlngs=ROUTE_STOPS.map(s=>[s.lat,s.lng]);
+    L.polyline(latlngs,{color:'#748064',weight:3,opacity:.8,dashArray:'6 6'}).addTo(routeMapInstance);
+    ROUTE_STOPS.forEach(s=>{
+      const icon=L.divIcon({className:'day-pin',html:s.day,iconSize:[26,26]});
+      L.marker([s.lat,s.lng],{icon}).addTo(routeMapInstance)
+        .bindPopup(`<b>Day ${s.day}</b><br>${esc(s.name)}`);
+    });
+    routeMapInstance.fitBounds(latlngs,{padding:[24,24]});
+    // legend
+    const legend=document.getElementById('mapLegend');
+    if(legend){
+      const days=[...new Set(ROUTE_STOPS.map(s=>s.day))];
+      legend.innerHTML=days.map(d=>`<span>Day ${d}：${esc(ROUTE_STOPS.find(s=>s.day===d).name)}</span>`).join('');
+    }
+  }
+  setTimeout(()=>routeMapInstance&&routeMapInstance.invalidateSize(),80);
+}
+
+/* ────────── Editing mode ────────── */
+function setEditing(on){
+  document.body.classList.toggle('editing', on);
+  root.querySelectorAll('[data-editable]').forEach(el=>{
+    el.contentEditable = on ? 'true' : 'false';
+    el.spellcheck = false;
+  });
+  // checklist labels
+  root.querySelectorAll('.check-label[data-editable]').forEach(el=>{
+    el.contentEditable = on ? 'true' : 'false';
+  });
+  editBtn.disabled = on;
+  saveBtn.disabled = !on;
+  cancelBtn.disabled = !on;
+  if(on) decorateLinks();
+}
+
+/* ────────── Photo handling ────────── */
+function handlePhotoClick(wrap){
+  if(!document.body.classList.contains('editing')) return;
+  openPhotoEditor(wrap);
+}
+
+function openPhotoEditor(wrap){
+  openModal('加入或更換照片',`
+    <label>📱 從手機選取照片</label>
+    <input id="photoFile" type="file" accept="image/*" capture="environment">
+    <label>🌐 或貼上圖片網址</label>
+    <input id="photoUrl" type="url" placeholder="https://...">
+    <div class="modal-actions">
+      <button class="btn primary" id="applyPhoto">套用照片</button>
+      ${wrap.querySelector('img') ? '<button class="btn" id="removePhoto">🗑 移除照片</button>' : ''}
+    </div>`);
+  document.getElementById('applyPhoto').onclick = async()=>{
+    const file = document.getElementById('photoFile').files[0];
+    const url = document.getElementById('photoUrl').value.trim();
+    let src = url;
+    if(file) src = await compressImage(file);
+    if(!src){ alert('請選圖片或填入網址'); return; }
+    setWrapPhoto(wrap, src);
+    closeModal(); showToast('照片已加入，記得按 💾 儲存')
+  };
+  const removeBtn = document.getElementById('removePhoto');
+  if(removeBtn) removeBtn.onclick = ()=>{ clearWrapPhoto(wrap); closeModal(); showToast('照片已移除') };
+}
+
+function setWrapPhoto(wrap, src){
+  let img = wrap.querySelector('img');
+  let ph = wrap.querySelector('.spot-photo-placeholder');
+  if(!img){
+    img = document.createElement('img');
+    wrap.insertBefore(img, wrap.firstChild);
+  }
+  img.src = src;
+  if(ph) ph.style.display='none';
+  let ob = wrap.querySelector('.photo-overlay-btn');
+  if(ob){ ob.style.display='block'; ob.textContent='更換照片' }
+}
+
+function clearWrapPhoto(wrap){
+  wrap.querySelector('img')?.remove();
+  let ph = wrap.querySelector('.spot-photo-placeholder');
+  if(ph) ph.style.display='';
+}
+
+function compressImage(file){
+  return new Promise((resolve,reject)=>{
+    const reader=new FileReader(), img=new Image();
+    reader.onload=e=>img.src=e.target.result;
+    reader.onerror=reject;
+    img.onload=()=>{
+      const max=1200, scale=Math.min(1,max/Math.max(img.width,img.height));
+      const c=document.createElement('canvas');
+      c.width=Math.round(img.width*scale); c.height=Math.round(img.height*scale);
+      c.getContext('2d').drawImage(img,0,0,c.width,c.height);
+      resolve(c.toDataURL('image/jpeg',.76))
+    };
+    reader.readAsDataURL(file)
+  })
+}
+
+/* ────────── Nav link editing ────────── */
+function editNavBtn(a){
+  if(!document.body.classList.contains('editing')) return;
+  openModal('修改導航連結',`
+    <label>按鈕文字</label>
+    <input id="lLabel" type="text" value="${esc(a.textContent.trim())}">
+    <label>Google Maps 網址</label>
+    <input id="lUrl" type="url" value="${esc(a.getAttribute('href')||'')}">
+    <div class="modal-actions">
+      <button class="btn primary" id="saveLinkBtn">儲存</button>
+    </div>`);
+  document.getElementById('saveLinkBtn').onclick=()=>{
+    a.textContent = document.getElementById('lLabel').value.trim() || a.textContent;
+    a.href = document.getElementById('lUrl').value.trim() || '#';
+    closeModal(); showToast('連結已更新，記得 💾 儲存')
+  }
+}
+
+function decorateLinks(){
+  // links in today section of dashboard
+  root.querySelectorAll('.today a.btn[href], .quick a.btn[href]').forEach(a=>{
+    if(a.dataset.decorated) return; a.dataset.decorated='1';
+    a.addEventListener('click', e=>{ if(document.body.classList.contains('editing')){ e.preventDefault(); editNavBtn(a) } })
+  });
+}
+
+/* ────────── Checklist ────────── */
+function addCheckItem(listId){
+  const container = document.getElementById(listId);
+  if(!container) return;
+  const label = document.createElement('label');
+  label.className='check-item';
+  label.innerHTML=`<input type="checkbox"><span class="check-label" data-editable contenteditable="${document.body.classList.contains('editing')?'true':'false'}">新項目（點此編輯）</span><button class="check-del" title="刪除">✕</button>`;
+  container.appendChild(label);
+  bindCheckDel(label.querySelector('.check-del'));
+  const span = label.querySelector('.check-label');
+  span.focus();
+  // select all text
+  const range=document.createRange(); range.selectNodeContents(span);
+  const sel=window.getSelection(); sel.removeAllRanges(); sel.addRange(range);
+  showToast('已新增，請直接輸入項目名稱')
+}
+
+function bindCheckDel(btn){
+  if(!btn) return;
+  btn.onclick = e=>{
+    e.preventDefault();
+    if(confirm('確定刪除這個項目？')) btn.closest('.check-item').remove()
+  }
+}
+
+function bindChecklist(){
+  root.querySelectorAll('.check-del').forEach(bindCheckDel);
+  root.querySelectorAll('.add-check-btn').forEach(btn=>{
+    btn.onclick = ()=> addCheckItem(btn.dataset.target)
+  });
+  // auto-save checkbox state
+  root.querySelectorAll('input[type=checkbox]').forEach(cb=>{
+    cb.onchange = debounceAutoSave
+  });
+}
+
+/* ────────── Add custom field (day body) ────────── */
+function bindAddFieldBtns(){
+  root.querySelectorAll('.add-field-btn').forEach(btn=>{
+    btn.onclick = e=>{
+      e.preventDefault(); e.stopPropagation();
+      addCustomField(btn.closest('.day-body'));
+    }
+  })
+}
+
+function addCustomField(dayBody){
+  openModal('新增景點／餐廳／備註',`
+    <label>類型</label>
+    <select id="fType"><option>景點</option><option>餐廳</option><option>飯店</option><option>交通</option><option>購物</option><option>備註</option></select>
+    <label>時間／時段</label>
+    <input id="fTime" type="text" placeholder="例如 09:00、下午、晚餐">
+    <label>名稱</label>
+    <input id="fName" type="text" placeholder="景點或餐廳名稱">
+    <label>說明</label>
+    <textarea id="fDesc" placeholder="細節、注意事項…"></textarea>
+    <label>導航連結（Google Maps）</label>
+    <input id="fUrl" type="url" placeholder="https://maps.google.com/?q=...">
+    <label>📷 加入照片（可選）</label>
+    <input id="fPhoto" type="file" accept="image/*">
+    <div class="modal-actions">
+      <button class="btn primary" id="saveFieldBtn">新增到這一天</button>
+    </div>`);
+  document.getElementById('saveFieldBtn').onclick = async()=>{
+    const name=document.getElementById('fName').value.trim();
+    if(!name){ alert('請填名稱'); return }
+    const type=document.getElementById('fType').value;
+    const time=document.getElementById('fTime').value.trim();
+    const desc=document.getElementById('fDesc').value.trim();
+    const url=document.getElementById('fUrl').value.trim();
+    const photoFile=document.getElementById('fPhoto').files[0];
+    let photoSrc='';
+    if(photoFile) photoSrc=await compressImage(photoFile);
+
+    const item=document.createElement('div');
+    item.className='item'; item.dataset.spot='1'; item.dataset.custom='1';
+    item.innerHTML=`
+      ${time?`<span class="time" data-editable>${esc(time)}</span>`:''}
+      <b data-editable>${esc(type)} | ${esc(name)}</b>
+      ${desc?`<p data-editable>${esc(desc)}</p>`:''}
+      <div class="spot-photo-wrap" onclick="handlePhotoClick(this)">
+        ${photoSrc?`<img src="${photoSrc}">`:'<div class="spot-photo-placeholder"><span>📷</span>點此加入景點照片</div>'}
+        <button class="photo-overlay-btn" type="button">更換照片</button>
+      </div>
+      ${url?`<div class="item-nav-row"><a class="item-nav" href="${esc(url)}" target="_blank">📍 導航</a><button class="item-nav item-nav-edit manage-btn" onclick="editNavBtn(this.previousElementSibling)">🔗 改連結</button></div>`:''}
+      <button class="manage-btn danger del-custom-btn" style="margin-top:8px;font-size:11px">🗑 刪除此欄位</button>`;
+
+    const timeline=dayBody.querySelector('.timeline');
+    if(timeline) timeline.appendChild(item);
+    else dayBody.appendChild(item);
+
+    item.querySelector('.del-custom-btn').onclick=()=>{
+      if(confirm('刪除此欄位？')) item.remove()
+    };
+    if(document.body.classList.contains('editing')){
+      item.querySelectorAll('[data-editable]').forEach(el=>el.contentEditable='true')
+    }
+    closeModal(); setEditing(true); showToast('已新增，記得按 💾 儲存')
+  }
+}
+
+/* ────────── Tools ────────── */
+function bindCalc(){
+  const r=document.getElementById('rate'), e=document.getElementById('eur'), t=document.getElementById('twd');
+  if(!r||!e||!t) return;
+  const calc=()=>t.textContent=Math.round((+r.value||0)*(+e.value||0)).toLocaleString('zh-TW');
+  r.oninput=calc; e.oninput=calc; calc()
+}
+
+function getExpenses(){
+  return [...document.querySelectorAll('.expense-row')].map(row=>({
+    name:row.querySelector('.ename')?.value||'',
+    amount:+(row.querySelector('.eamount')?.value||0)
+  }))
+}
+function updateTotal(){
+  const total=getExpenses().reduce((a,b)=>a+b.amount,0);
+  const el=document.getElementById('expenseTotal');
+  if(el) el.textContent=total.toFixed(2).replace(/\.00$/,'')
+}
+function addExpenseRow(name='',amount=''){
+  const box=document.getElementById('expenses'); if(!box) return;
+  const row=document.createElement('div'); row.className='expense-row';
+  row.innerHTML=`<input class="ename" type="text" placeholder="項目" value="${esc(name)}"><input class="eamount" type="number" placeholder="EUR" min="0" value="${esc(amount)}"><button class="btn">刪</button>`;
+  row.querySelector('button').onclick=()=>{row.remove();updateTotal()};
+  row.querySelectorAll('input').forEach(x=>x.oninput=updateTotal);
+  box.appendChild(row); updateTotal()
+}
+function bindExpenses(){
+  const add=document.getElementById('addExpense'); if(add) add.onclick=()=>addExpenseRow();
+  if(document.getElementById('expenses')&&!document.querySelector('.expense-row')) addExpenseRow()
+}
+
+/* ────────── Save / Restore ────────── */
+function saveState(){
+  const payload={
+    html: root.innerHTML,
+    checked: [...root.querySelectorAll('input[type=checkbox]')].map(x=>x.checked),
+    savedAt: new Date().toISOString()
+  };
+  try{
+    localStorage.setItem(KEY, JSON.stringify(payload));
+    setEditing(false); showToast('✅ 已儲存到這台裝置');
+  }catch(e){
+    alert('儲存空間不足，通常是照片太多。請先匯出備份或移除部分照片。')
+  }
+}
+
+function restoreState(raw){
+  try{
+    const p=JSON.parse(raw);
+    if(!p||!p.html) return false;
+    root.innerHTML=p.html;
+    [...root.querySelectorAll('input[type=checkbox]')].forEach((x,i)=>x.checked=!!(p.checked||[])[i]);
+    bindAll(); return true
+  }catch(e){ console.warn(e); return false }
+}
+
+let autoSaveTimer;
+function debounceAutoSave(){
+  clearTimeout(autoSaveTimer);
+  autoSaveTimer=setTimeout(()=>{
+    try{
+      const payload={html:root.innerHTML,checked:[...root.querySelectorAll('input[type=checkbox]')].map(x=>x.checked),savedAt:new Date().toISOString()};
+      localStorage.setItem(KEY,JSON.stringify(payload))
+    }catch(_){}
+  },400)
+}
+
+/* ────────── Export / Import ────────── */
+document.getElementById('exportBtn').onclick=()=>{
+  const payload=localStorage.getItem(KEY)||JSON.stringify({html:root.innerHTML,checked:[...root.querySelectorAll('input[type=checkbox]')].map(x=>x.checked)});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([payload],{type:'application/json'}));
+  a.download='ophelia-europe-v4-backup.json'; a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href),500)
+};
+document.getElementById('importInput').onchange=e=>{
+  const f=e.target.files[0]; if(!f) return;
+  const r=new FileReader();
+  r.onload=()=>{
+    if(restoreState(r.result)){ localStorage.setItem(KEY,r.result); showToast('備份已匯入') }
+    else alert('這不是正確的備份檔')
+  };
+  r.readAsText(f)
+};
+
+/* ────────── Toolbar ────────── */
+editBtn.onclick=()=>{ snapshot=root.innerHTML; setEditing(true); showToast('✏️ 編輯模式，可改文字、圖片與連結') };
+saveBtn.onclick=saveState;
+cancelBtn.onclick=()=>{ if(snapshot){ root.innerHTML=snapshot; bindAll() } setEditing(false); showToast('已取消') };
+resetBtn.onclick=()=>{
+  if(confirm('確定清除所有修改，回到原始行程？')){ localStorage.removeItem(KEY); location.reload() }
+};
+
+/* ────────── bindAll ────────── */
+function bindAll(){
+  bindTabs();
+  bindCalc();
+  bindExpenses();
+  bindChecklist();
+  bindAddFieldBtns();
+  decorateLinks();
+  // re-attach photo overlays
+  root.querySelectorAll('.spot-photo-wrap').forEach(wrap=>{
+    const ob=wrap.querySelector('.photo-overlay-btn');
+    if(ob) ob.onclick=e=>{ e.stopPropagation(); openPhotoEditor(wrap) };
+    // placeholder click
+    const ph=wrap.querySelector('.spot-photo-placeholder');
+    if(ph) ph.onclick=e=>{ e.stopPropagation(); if(document.body.classList.contains('editing')) openPhotoEditor(wrap) };
+  });
+  // del custom buttons
+  root.querySelectorAll('.del-custom-btn').forEach(btn=>{
+    btn.onclick=()=>{ if(confirm('刪除此欄位？')) btn.closest('.item').remove() }
+  });
+}
+
+/* ────────── Init ────────── */
+const saved=localStorage.getItem(KEY);
+if(saved) restoreState(saved); else bindAll();
+</script>
+</body>
+</html>
