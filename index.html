@@ -12,8 +12,8 @@
   --accent2:#b58c58;--line:#e5ded1;--danger:#9f5148;--shadow:0 14px 36px rgba(55,52,43,.10)
 }
 *{box-sizing:border-box}
-html{scroll-behavior:smooth}
-body{margin:0;background:linear-gradient(180deg,#e9efe3 0,#f4f1e9 300px);color:var(--ink);
+html{scroll-behavior:smooth;overflow-x:hidden;max-width:100%}
+body{margin:0;overflow-x:hidden;max-width:100%;background:linear-gradient(180deg,#e9efe3 0,#f4f1e9 300px);color:var(--ink);
 font-family:-apple-system,BlinkMacSystemFont,"PingFang TC","Noto Sans TC","Segoe UI",sans-serif}
 button,input{font:inherit}a{color:inherit}
 .app{max-width:860px;margin:auto;padding:0 15px 100px}
@@ -119,13 +119,17 @@ body.editing .check-del{display:block}
 .custom-card img{width:100%;max-height:280px;object-fit:cover;border-radius:12px;margin-top:10px}
 
 /* ── TOOLBAR ── */
-.toolbar{position:fixed;left:50%;transform:translateX(-50%);bottom:18px;z-index:40;display:flex;gap:7px;
+.toolbar{position:fixed;left:50%;transform:translateX(-50%);bottom:18px;z-index:40;display:flex;flex-wrap:nowrap;gap:6px;
 background:rgba(255,255,255,.95);backdrop-filter:blur(16px);border:1px solid var(--line);
-padding:8px;border-radius:18px;box-shadow:var(--shadow);max-width:calc(100vw - 20px);overflow:auto}
-.toolbar button{border:0;border-radius:12px;padding:10px 12px;font-weight:900;cursor:pointer;white-space:nowrap}
+padding:7px;border-radius:18px;box-shadow:var(--shadow);max-width:calc(100vw - 16px);overflow-x:auto;-webkit-overflow-scrolling:touch}
+.toolbar button{flex:0 0 auto;border:0;border-radius:12px;padding:9px 10px;font-weight:900;font-size:13px;cursor:pointer;white-space:nowrap}
 .toolbar button:disabled{opacity:.38;cursor:default}
 .edit-btn{background:var(--accent);color:#fff}.save-btn{background:#263025;color:#fff}
 .cancel-btn{background:#eee8de}.reset-btn{background:#fff0ed;color:var(--danger)}
+@media (max-width:380px){
+  .toolbar{gap:4px;padding:6px}
+  .toolbar button{padding:8px 8px;font-size:12px}
+}
 
 /* ── MODAL ── */
 .modal-wrap{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:100;padding:18px;overflow:auto;display:none}
@@ -352,18 +356,18 @@ footer{text-align:center;color:var(--muted);font-size:12px;padding:30px 0}
           </ul></div>
           <div class="timeline">
             <div class="item" data-spot>
-              <span class="time" data-editable>09:00</span><b data-editable>退房出發</b>
+              <span class="time" data-editable>08:30</span><b data-editable>退房出發</b>
               <div class="spot-photo-wrap" onclick="handlePhotoClick(this)"><div class="spot-photo-placeholder"><span>📷</span>點此加入景點照片</div><button class="photo-overlay-btn" type="button">更換照片</button></div>
             </div>
             <div class="item" data-spot>
-              <span class="time" data-editable>約 11:00</span><b data-editable>Brenner Pass（布倫納山口）</b><p data-editable>邊界休息約 20 分鐘，奧義交界拍照。</p>
+              <span class="time" data-editable>約 10:30</span><b data-editable>Brenner Pass（布倫納山口）</b><p data-editable>邊界休息約 20 分鐘，奧義交界拍照。</p>
               <div class="spot-photo-wrap" onclick="handlePhotoClick(this)"><div class="spot-photo-placeholder"><span>📷</span>點此加入景點照片</div><button class="photo-overlay-btn" type="button">更換照片</button></div>
               <div class="item-nav-row"><a class="item-nav" href="https://maps.google.com/?q=Brenner+Pass" target="_blank">📍 導航</a><button class="item-nav item-nav-edit manage-btn" onclick="editNavBtn(this.previousElementSibling)">🔗 改連結</button></div>
             </div>
             <div class="item" data-spot>
-              <span class="time" data-editable>約 11:45</span><b data-editable>Vipiteno／Sterzing（維皮泰諾）</b><p data-editable>老城、Zwölferturm 鐘塔、午餐、冰淇淋，停留 1.5–2 小時。</p>
+              <span class="time" data-editable>約 11:15</span><b data-editable>Vipiteno／Sterzing（維皮泰諾）</b><p data-editable>老城、Zwölferturm 鐘塔、午餐、冰淇淋，停留 1.5–2 小時。⚠️ 老城內有 ZTL 限制通行區，開車不要直接進去，導航到停車場再步行進城。</p>
               <div class="spot-photo-wrap" onclick="handlePhotoClick(this)"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Sterzing-Vipiteno.JPG?width=800"><button class="photo-overlay-btn" type="button">更換照片</button></div>
-              <div class="item-nav-row"><a class="item-nav" href="https://maps.google.com/?q=Vipiteno+Sterzing+Italy" target="_blank">📍 導航</a><button class="item-nav item-nav-edit manage-btn" onclick="editNavBtn(this.previousElementSibling)">🔗 改連結</button></div>
+              <div class="item-nav-row"><a class="item-nav" href="https://maps.google.com/?q=Parking+Centrum+Sterzing" target="_blank">🅿 Parking Centrum Sterzing</a><button class="item-nav item-nav-edit manage-btn" onclick="editNavBtn(this.previousElementSibling)">🔗 改連結</button></div>
             </div>
             <div class="item" data-spot>
               <span class="time" data-editable>午餐</span><b data-editable>Hotel Lamm Restaurant</b><p data-editable>推薦：義大利麵、牛排、南提洛料理。備選：Kolping Restaurant（Pizza、義大利麵、提洛料理）。</p>
@@ -455,43 +459,53 @@ footer{text-align:center;color:var(--muted);font-size:12px;padding:30px 0}
 
       <!-- DAY 6 -->
       <details class="card day-card">
-        <summary class="day-head"><div class="day-head-main"><div class="day-badge" style="background:#dfe9cf">🐄</div><div><h3 data-editable>🇮🇹 Day 6｜7/22（三）</h3><div class="route" data-editable>Alpe di Siusi（休斯高原）→ Ortisei → Stafler</div></div></div><div class="chev">＋</div></summary>
+        <summary class="day-head"><div class="day-head-main"><div class="day-badge" style="background:#dfe9cf">🚡</div><div><h3 data-editable>🇮🇹 Day 6｜7/22（三）</h3><div class="route" data-editable>Ortisei（Seceda 纜車）→ Alpe di Siusi（休斯高原）→ Stafler</div></div></div><div class="chev">＋</div></summary>
         <div class="day-body">
           <div class="manage-row"><button class="manage-btn primary add-field-btn">＋ 新增景點／餐廳／備註</button></div>
           <div class="chips"><span class="chip">約 140 km</span><span class="chip">約 2 h 30 min（不含停留，含搬宿）</span></div>
           <div class="day-highlight"><b>🔑 今日重點</b><ul>
-            <li data-editable>今天會搭纜車，不用去 Seceda（刀鋒山）</li>
-            <li data-editable>重點是欣賞休斯高原，下午再去 Ortisei</li>
-            <li data-editable>晚餐記得提前訂位；晚上不用再排行程</li>
+            <li data-editable>Seceda 纜車已預約，08:45 要到纜車站驗票，09:00 準時搭乘</li>
+            <li data-editable>下山時間彈性（約 12:00 左右），不用趕</li>
+            <li data-editable>Alpe di Siusi 開車前往，注意 Seiser Alm 纜車站停車</li>
+            <li data-editable>Mauriz Keller 改為午餐；晚餐直接在 Stafler 飯店內用</li>
           </ul></div>
           <div class="timeline">
             <div class="item" data-spot>
-              <span class="time" data-editable>08:00–15:00</span><b data-editable>Alpe di Siusi（休斯高原）</b><p data-editable>停山下 Seis 纜車站搭纜車，草原、牛群、山景，停留 4–5 小時。</p>
-              <div class="spot-photo-wrap" onclick="handlePhotoClick(this)"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/AlpediSiusi%20panorama2.JPG?width=800"><button class="photo-overlay-btn" type="button">更換照片</button></div>
-              <div class="item-nav-row"><a class="item-nav" href="https://maps.google.com/?q=Seiser+Alm+Cable+Car" target="_blank">🚠 纜車站</a><button class="item-nav item-nav-edit manage-btn" onclick="editNavBtn(this.previousElementSibling)">🔗 改連結</button></div>
-            </div>
-            <div class="item" data-spot>
-              <span class="time" data-editable>午餐</span><b data-editable>Ristorante Gostner Schwaige</b><p data-editable>提洛料理、Apple Strudel、咖啡。</p>
+              <span class="time" data-editable>07:15</span><b data-editable>Issengo 出發</b>
               <div class="spot-photo-wrap" onclick="handlePhotoClick(this)"><div class="spot-photo-placeholder"><span>📷</span>點此加入景點照片</div><button class="photo-overlay-btn" type="button">更換照片</button></div>
-              <div class="item-nav-row"><a class="item-nav" href="https://maps.google.com/?q=Gostner+Schwaige" target="_blank">📍 導航</a><button class="item-nav item-nav-edit manage-btn" onclick="editNavBtn(this.previousElementSibling)">🔗 改連結</button></div>
             </div>
             <div class="item" data-spot>
-              <span class="time" data-editable>15:30</span><b data-editable>Ortisei（奧蒂塞伊）散步</b><p data-editable>精品店、Gelato，停留 1 小時。</p>
+              <span class="time" data-editable>08:30</span><b data-editable>抵達 Ortisei 停車</b>
               <div class="spot-photo-wrap" onclick="handlePhotoClick(this)"><div class="spot-photo-placeholder"><span>📷</span>點此加入景點照片</div><button class="photo-overlay-btn" type="button">更換照片</button></div>
               <div class="item-nav-row"><a class="item-nav" href="https://maps.google.com/?q=Ortisei" target="_blank">📍 導航</a><button class="item-nav item-nav-edit manage-btn" onclick="editNavBtn(this.previousElementSibling)">🔗 改連結</button></div>
             </div>
             <div class="item" data-spot>
-              <span class="time" data-editable>18:00</span><b data-editable>Mauriz Keller Restaurant & Pizzeria</b><p data-editable>Schlutzkrapfen、Speckknödel、Pizza、牛排、Apple Strudel。⚠️ 記得提前訂位！</p>
+              <span class="time" data-editable>08:45</span><b data-editable>纜車站驗票</b><p data-editable>Seceda 纜車谷站（Funivie Seceda），地址 Via Val d'Anna 2, Ortisei；市中心 Piazza S. Antonio 走 La Curta 電動步道約 5–6 分鐘可達。</p>
+              <div class="spot-photo-wrap" onclick="handlePhotoClick(this)"><div class="spot-photo-placeholder"><span>📷</span>點此加入景點照片</div><button class="photo-overlay-btn" type="button">更換照片</button></div>
+              <div class="item-nav-row"><a class="item-nav" href="https://maps.google.com/?q=Funivie+Seceda+Via+Val+d%27Anna+2+Ortisei" target="_blank">🚡 纜車站（Via Val d'Anna 2）</a><button class="item-nav item-nav-edit manage-btn" onclick="editNavBtn(this.previousElementSibling)">🔗 改連結</button></div>
+            </div>
+            <div class="item" data-spot>
+              <span class="time" data-editable>09:00</span><b data-editable>搭 Seceda 纜車（已預約）</b><p data-editable>刀鋒山經典山景，下山時間彈性（約 12:00 左右）。</p>
+              <div class="spot-photo-wrap" onclick="handlePhotoClick(this)"><div class="spot-photo-placeholder"><span>📷</span>點此加入景點照片</div><button class="photo-overlay-btn" type="button">更換照片</button></div>
+              <div class="item-nav-row"><a class="item-nav" href="https://maps.google.com/?q=Seceda" target="_blank">📍 Seceda 山頂</a><button class="item-nav item-nav-edit manage-btn" onclick="editNavBtn(this.previousElementSibling)">🔗 改連結</button></div>
+            </div>
+            <div class="item" data-spot>
+              <span class="time" data-editable>12:15–13:15</span><b data-editable>Mauriz Keller 午餐</b><p data-editable>Schlutzkrapfen、Speckknödel、Pizza、牛排、Apple Strudel。</p>
               <div class="spot-photo-wrap" onclick="handlePhotoClick(this)"><div class="spot-photo-placeholder"><span>📷</span>點此加入景點照片</div><button class="photo-overlay-btn" type="button">更換照片</button></div>
               <div class="item-nav-row"><a class="item-nav" href="https://maps.google.com/?q=Mauriz+Keller+Ortisei" target="_blank">📍 導航</a><button class="item-nav item-nav-edit manage-btn" onclick="editNavBtn(this.previousElementSibling)">🔗 改連結</button></div>
             </div>
             <div class="item" data-spot>
-              <span class="time" data-editable>19:30</span><b data-editable>Romantik Hotel Stafler Check-in</b>
+              <span class="time" data-editable>13:30–17:00</span><b data-editable>Alpe di Siusi（休斯高原）</b><p data-editable>停 Seiser Alm 纜車站搭纜車，草原、牛群、山景。</p>
+              <div class="spot-photo-wrap" onclick="handlePhotoClick(this)"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/AlpediSiusi%20panorama2.JPG?width=800"><button class="photo-overlay-btn" type="button">更換照片</button></div>
+              <div class="item-nav-row"><a class="item-nav" href="https://maps.google.com/?q=Seiser+Alm+Cable+Car" target="_blank">🚠 纜車站</a><button class="item-nav item-nav-edit manage-btn" onclick="editNavBtn(this.previousElementSibling)">🔗 改連結</button></div>
+            </div>
+            <div class="item" data-spot>
+              <span class="time" data-editable>19:30</span><b data-editable>Romantik Hotel Stafler Check-in ＋ 晚餐</b><p data-editable>直接在 Stafler 飯店內用晚餐。</p>
               <div class="spot-photo-wrap" onclick="handlePhotoClick(this)"><div class="spot-photo-placeholder"><span>📷</span>點此加入景點照片</div><button class="photo-overlay-btn" type="button">更換照片</button></div>
               <div class="item-nav-row"><a class="item-nav" href="https://maps.google.com/?q=Romantik+Hotel+Stafler" target="_blank">📍 導航</a><button class="item-nav item-nav-edit manage-btn" onclick="editNavBtn(this.previousElementSibling)">🔗 改連結</button></div>
             </div>
           </div>
-          <div class="note" data-editable>今天不去 Seceda（刀鋒山），高原約 8–18°C。</div>
+          <div class="note" data-editable>Seceda 纜車已預約，記得準時；高原約 8–18°C，羽絨放車上。</div>
         </div>
       </details>
 
@@ -500,7 +514,7 @@ footer{text-align:center;color:var(--muted);font-size:12px;padding:30px 0}
         <summary class="day-head"><div class="day-head-main"><div class="day-badge" style="background:#d6e6f0">❄️</div><div><h3 data-editable>🇮🇹→🇩🇪 Day 7｜7/23（四）</h3><div class="route" data-editable>Mittenwald → Eibsee → Zugspitze → Munich</div></div></div><div class="chev">＋</div></summary>
         <div class="day-body">
           <div class="manage-row"><button class="manage-btn primary add-field-btn">＋ 新增景點／餐廳／備註</button></div>
-          <div class="chips"><span class="chip">約 300 km</span><span class="chip">約 4 h（不含停留，經 Brenner／Innsbruck）</span></div>
+          <div class="chips"><span class="chip">約 300 km</span><span class="chip">約 4 h（不含停留）</span></div>
           <div class="day-highlight"><b>🔑 今日重點</b><ul>
             <li data-editable>今天是景點最多的一天，不安排逛街；BMW 留到 Day 8</li>
             <li data-editable>如果楚格峰起霧，不用久待；艾布湖一定要去</li>
