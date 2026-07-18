@@ -1104,7 +1104,15 @@ function addExpenseRow(name='',amount=''){
 }
 function bindExpenses(){
   const add=document.getElementById('addExpense'); if(add) add.onclick=()=>addExpenseRow();
-  if(document.getElementById('expenses')&&!document.querySelector('.expense-row')) addExpenseRow()
+  // rows restored from a saved snapshot lose their JS-bound handlers (onclick/oninput
+  // aren't serialized into HTML), so rebind delete + input on every existing row
+  document.querySelectorAll('.expense-row').forEach(row=>{
+    const delBtn=row.querySelector('button');
+    if(delBtn) delBtn.onclick=()=>{row.remove();updateTotal();debounceAutoSave()};
+    row.querySelectorAll('input').forEach(x=>x.oninput=()=>{updateTotal();debounceAutoSave()});
+  });
+  if(document.getElementById('expenses')&&!document.querySelector('.expense-row')) addExpenseRow();
+  updateTotal();
 }
 
 /* ────────── Save / Restore ────────── */
