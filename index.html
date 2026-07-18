@@ -1080,7 +1080,7 @@ function bindCalc(){
   const r=document.getElementById('rate'), e=document.getElementById('eur'), t=document.getElementById('twd');
   if(!r||!e||!t) return;
   const calc=()=>t.textContent=Math.round((+r.value||0)*(+e.value||0)).toLocaleString('zh-TW');
-  r.oninput=calc; e.oninput=calc; calc()
+  r.oninput=()=>{calc(); debounceAutoSave()}; e.oninput=()=>{calc(); debounceAutoSave()}; calc()
 }
 
 function getExpenses(){
@@ -1098,9 +1098,9 @@ function addExpenseRow(name='',amount=''){
   const box=document.getElementById('expenses'); if(!box) return;
   const row=document.createElement('div'); row.className='expense-row';
   row.innerHTML=`<input class="ename" type="text" placeholder="項目" value="${esc(name)}"><input class="eamount" type="number" placeholder="EUR" min="0" value="${esc(amount)}"><button class="btn">刪</button>`;
-  row.querySelector('button').onclick=()=>{row.remove();updateTotal()};
-  row.querySelectorAll('input').forEach(x=>x.oninput=updateTotal);
-  box.appendChild(row); updateTotal()
+  row.querySelector('button').onclick=()=>{row.remove();updateTotal();debounceAutoSave()};
+  row.querySelectorAll('input').forEach(x=>x.oninput=()=>{updateTotal();debounceAutoSave()});
+  box.appendChild(row); updateTotal(); debounceAutoSave()
 }
 function bindExpenses(){
   const add=document.getElementById('addExpense'); if(add) add.onclick=()=>addExpenseRow();
@@ -1108,8 +1108,17 @@ function bindExpenses(){
 }
 
 /* ────────── Save / Restore ────────── */
+function syncInputValues(){
+  // typed values in <input> live in the DOM property, not the HTML attribute,
+  // so innerHTML won't capture them unless we push them back into the attribute first
+  root.querySelectorAll('input[type=text],input[type=number],input[type=url]').forEach(el=>{
+    el.setAttribute('value', el.value)
+  });
+}
+
 function saveState(){
   setEditing(false);
+  syncInputValues();
   const payload={
     html: root.innerHTML,
     checked: [...root.querySelectorAll('input[type=checkbox]')].map(x=>x.checked),
@@ -1138,6 +1147,7 @@ function debounceAutoSave(){
   clearTimeout(autoSaveTimer);
   autoSaveTimer=setTimeout(()=>{
     try{
+      syncInputValues();
       const payload={html:root.innerHTML,checked:[...root.querySelectorAll('input[type=checkbox]')].map(x=>x.checked),savedAt:new Date().toISOString()};
       localStorage.setItem(KEY,JSON.stringify(payload))
     }catch(_){}
