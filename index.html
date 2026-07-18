@@ -344,7 +344,7 @@ footer{text-align:center;color:var(--muted);font-size:12px;padding:30px 0}
 
       <!-- DAY 3 -->
       <details class="card day-card">
-        <summary class="day-head"><div class="day-head-main"><div class="day-badge" style="background:#f3ddd0">🏰</div><div><h3 data-editable>🇦🇹→🇮🇹 Day 3｜7/19（日）</h3><div class="route" data-editable>Zell am See → Vipiteno → Issengo</div></div></div><div class="chev">＋</div></summary>
+        <summary class="day-head"><div class="day-head-main"><div class="day-badge" style="background:#f3ddd0">🏰</div><div><h3 data-editable>🇦🇹→🇮🇹 Day 3｜7/19（日）</h3><div class="route" data-editable>Zell am See → Brenner Pass → Vipiteno → Issengo</div></div></div><div class="chev">＋</div></summary>
         <div class="day-body">
           <div class="manage-row"><button class="manage-btn primary add-field-btn">＋ 新增景點／餐廳／備註</button></div>
           <div class="chips"><span class="chip">約 270–300 km</span><span class="chip">純車程約 4 h</span></div>
@@ -1109,6 +1109,7 @@ function bindExpenses(){
 
 /* ────────── Save / Restore ────────── */
 function saveState(){
+  setEditing(false);
   const payload={
     html: root.innerHTML,
     checked: [...root.querySelectorAll('input[type=checkbox]')].map(x=>x.checked),
@@ -1116,7 +1117,7 @@ function saveState(){
   };
   try{
     localStorage.setItem(KEY, JSON.stringify(payload));
-    setEditing(false); showToast('✅ 已儲存到這台裝置');
+    showToast('✅ 已儲存到這台裝置');
   }catch(e){
     alert('儲存空間不足，通常是照片太多。請先匯出備份或移除部分照片。')
   }
