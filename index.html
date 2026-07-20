@@ -166,6 +166,21 @@ body.editing a.btn[href]:not(.no-outline){outline:2px dashed #a9906b;outline-off
 display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.3)}
 
 footer{text-align:center;color:var(--muted);font-size:12px;padding:30px 0}
+
+/* ── READ-ONLY SHARE MODE (?view=1) ── */
+body.readonly-mode .toolbar{display:none!important}
+body.readonly-mode .manage-row{display:none!important}
+body.readonly-mode .photo-overlay-btn{display:none!important}
+body.readonly-mode .del-custom-btn{display:none!important}
+body.readonly-mode .item-nav-edit{display:none!important}
+body.readonly-mode input[type=checkbox]{pointer-events:none}
+body.readonly-mode input[type=text],
+body.readonly-mode input[type=number]{pointer-events:none;background:transparent;border-color:transparent}
+body.readonly-mode #addExpense{display:none!important}
+body.readonly-mode .spot-photo-placeholder{display:none!important}
+body.readonly-mode .readonly-badge{display:inline-block!important}
+.readonly-badge{display:none;background:#526044;color:#fff;font-size:11px;font-weight:800;
+padding:4px 10px;border-radius:999px;margin:0 auto 10px;text-align:center}
 @media(min-width:700px){.stats{grid-template-columns:repeat(4,1fr)}}
 </style>
 </head>
@@ -173,6 +188,7 @@ footer{text-align:center;color:var(--muted);font-size:12px;padding:30px 0}
 <div class="app" id="appRoot">
 
   <header class="hero">
+    <div class="readonly-badge">👀 唯讀分享版本</div>
     <div class="kicker">OPHELIA'S TRIP APP</div>
     <h1 data-editable>🇦🇹 🇮🇹 🇩🇪 Europe Road Trip 2026</h1>
     <div class="subtitle" data-editable>2026/7/17–7/26｜奧地利・義大利・德國<br>Vienna Airport 取車／還車</div>
@@ -917,6 +933,7 @@ function setEditing(on){
 
 /* ────────── Photo handling ────────── */
 function handlePhotoClick(wrap){
+  if(document.body.classList.contains('readonly-mode')) return;
   if(!document.body.classList.contains('editing')) return;
   openPhotoEditor(wrap);
 }
@@ -1242,6 +1259,9 @@ function bindAll(){
 }
 
 /* ────────── Init ────────── */
+if(new URLSearchParams(location.search).get('view')==='1'){
+  document.body.classList.add('readonly-mode');
+}
 const saved=localStorage.getItem(KEY);
 if(saved) restoreState(saved); else bindAll();
 
