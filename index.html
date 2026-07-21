@@ -819,9 +819,32 @@ padding:4px 10px;border-radius:999px;margin:0 auto 10px;text-align:center}
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore-compat.js"></script>
 <script>
 /* ────────── Constants ────────── */
 const KEY = 'ophelia-europe-v4-a1';
+
+/* ────────── Firebase (shared cloud sync) ────────── */
+const firebaseConfig = {
+  apiKey: "AIzaSyA1xjQ1eXF7cFc6W2AenQWSWxPxEnmhSII",
+  authDomain: "schedule-1eb79.firebaseapp.com",
+  projectId: "schedule-1eb79",
+  storageBucket: "schedule-1eb79.firebasestorage.app",
+  messagingSenderId: "117653777546",
+  appId: "1:117653777546:web:1f51a4b1af16e2ca001173"
+};
+let db=null, TRIP_DOC=null;
+try{
+  firebase.initializeApp(firebaseConfig);
+  db = firebase.firestore();
+  TRIP_DOC = db.collection('trips').doc('europe-trip-2026');
+}catch(e){ console.warn('Firebase init failed, falling back to local-only mode', e) }
+
+function pushToCloud(payload){
+  if(!TRIP_DOC) return;
+  TRIP_DOC.set(payload).catch(e=>console.warn('cloud save failed', e));
+}
 const root = document.getElementById('appRoot');
 const toast = document.getElementById('toast');
 const modal = document.getElementById('modal');
@@ -1183,7 +1206,8 @@ function saveState(){
   };
   try{
     localStorage.setItem(KEY, JSON.stringify(payload));
-    showToast('✅ 已儲存到這台裝置');
+    pushToCloud(payload);
+    showToast('✅ 已儲存並同步雲端');
   }catch(e){
     alert('儲存空間不足，通常是照片太多。請先匯出備份或移除部分照片。')
   }
@@ -1206,7 +1230,8 @@ function debounceAutoSave(){
     try{
       syncInputValues();
       const payload={html:root.innerHTML,checked:[...root.querySelectorAll('input[type=checkbox]')].map(x=>x.checked),savedAt:new Date().toISOString()};
-      localStorage.setItem(KEY,JSON.stringify(payload))
+      localStorage.setItem(KEY,JSON.stringify(payload));
+      pushToCloud(payload);
     }catch(_){}
   },400)
 }
@@ -1263,8 +1288,24 @@ function bindAll(){
 if(new URLSearchParams(location.search).get('view')==='1'){
   document.body.classList.add('readonly-mode');
 }
+
+// show something immediately (local cache or the static file itself),
+// then try the cloud copy — if it's there, it wins (it's the shared source of truth)
 const saved=localStorage.getItem(KEY);
 if(saved) restoreState(saved); else bindAll();
+
+if(TRIP_DOC){
+  TRIP_DOC.get().then(snap=>{
+    if(snap.exists){
+      const data=snap.data();
+      if(data && data.html){
+        const raw=JSON.stringify(data);
+        localStorage.setItem(KEY, raw); // keep an offline cache in sync too
+        restoreState(raw);
+      }
+    }
+  }).catch(e=>console.warn('cloud fetch failed, staying on local/offline copy', e));
+}
 
 /* ────────── Offline support ────────── */
 if('serviceWorker' in navigator){
