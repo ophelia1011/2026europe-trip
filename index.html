@@ -843,7 +843,15 @@ try{
 
 function pushToCloud(payload){
   if(!TRIP_DOC) return;
-  TRIP_DOC.set(payload).catch(e=>console.warn('cloud save failed', e));
+  const bytes = new Blob([JSON.stringify(payload)]).size;
+  if(bytes > 900*1024){ // Firestore's hard limit is 1MiB per document — stay safely under it
+    showToast('⚠️ 內容太大（通常是照片太多），這次沒有同步到雲端，其他人可能看不到最新版');
+    return;
+  }
+  TRIP_DOC.set(payload).catch(e=>{
+    console.warn('cloud save failed', e);
+    showToast('⚠️ 雲端同步失敗，已存在這台裝置');
+  });
 }
 const root = document.getElementById('appRoot');
 const toast = document.getElementById('toast');
@@ -1010,11 +1018,11 @@ function compressImage(file){
     reader.onload=e=>img.src=e.target.result;
     reader.onerror=reject;
     img.onload=()=>{
-      const max=1200, scale=Math.min(1,max/Math.max(img.width,img.height));
+      const max=1000, scale=Math.min(1,max/Math.max(img.width,img.height));
       const c=document.createElement('canvas');
       c.width=Math.round(img.width*scale); c.height=Math.round(img.height*scale);
       c.getContext('2d').drawImage(img,0,0,c.width,c.height);
-      resolve(c.toDataURL('image/jpeg',.76))
+      resolve(c.toDataURL('image/jpeg',.68))
     };
     reader.readAsDataURL(file)
   })
@@ -1290,7 +1298,9 @@ if(new URLSearchParams(location.search).get('view')==='1'){
 }
 
 // show something immediately (local cache or the static file itself),
-// then try the cloud copy — if it's there, it wins (it's the shared source of truth)
+// then check the cloud copy — only apply it if it's actually newer than
+// what we already have locally (protects against a stale cloud copy —
+// e.g. one where a photo failed to sync — wiping out a newer local save)
 const saved=localStorage.getItem(KEY);
 if(saved) restoreState(saved); else bindAll();
 
@@ -1299,9 +1309,13 @@ if(TRIP_DOC){
     if(snap.exists){
       const data=snap.data();
       if(data && data.html){
-        const raw=JSON.stringify(data);
-        localStorage.setItem(KEY, raw); // keep an offline cache in sync too
-        restoreState(raw);
+        const localSavedAt = saved ? (JSON.parse(saved).savedAt||'') : '';
+        const cloudSavedAt = data.savedAt||'';
+        if(!localSavedAt || cloudSavedAt > localSavedAt){
+          const raw=JSON.stringify(data);
+          localStorage.setItem(KEY, raw);
+          restoreState(raw);
+        }
       }
     }
   }).catch(e=>console.warn('cloud fetch failed, staying on local/offline copy', e));
