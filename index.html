@@ -174,9 +174,11 @@ body.readonly-mode .photo-overlay-btn{display:none!important}
 body.readonly-mode .del-custom-btn{display:none!important}
 body.readonly-mode .item-nav-edit{display:none!important}
 body.readonly-mode input[type=checkbox]{pointer-events:none}
+body.readonly-mode .check-item{pointer-events:none}
 body.readonly-mode input[type=text],
 body.readonly-mode input[type=number]{pointer-events:none;background:transparent;border-color:transparent}
 body.readonly-mode #addExpense{display:none!important}
+body.readonly-mode .expense-del-btn{display:none!important}
 body.readonly-mode .spot-photo-placeholder{display:none!important}
 body.readonly-mode .readonly-badge{display:inline-block!important}
 .readonly-badge{display:none;background:#526044;color:#fff;font-size:11px;font-weight:800;
@@ -1177,7 +1179,7 @@ function updateTotal(){
 function addExpenseRow(name='',amount=''){
   const box=document.getElementById('expenses'); if(!box) return;
   const row=document.createElement('div'); row.className='expense-row';
-  row.innerHTML=`<input class="ename" type="text" placeholder="項目" value="${esc(name)}"><input class="eamount" type="number" placeholder="EUR" min="0" value="${esc(amount)}"><button class="btn">刪</button>`;
+  row.innerHTML=`<input class="ename" type="text" placeholder="項目" value="${esc(name)}"><input class="eamount" type="number" placeholder="EUR" min="0" value="${esc(amount)}"><button class="btn expense-del-btn">刪</button>`;
   row.querySelector('button').onclick=()=>{row.remove();updateTotal();debounceAutoSave()};
   row.querySelectorAll('input').forEach(x=>x.oninput=()=>{updateTotal();debounceAutoSave()});
   box.appendChild(row); updateTotal(); debounceAutoSave()
